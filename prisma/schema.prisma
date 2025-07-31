@@ -1,0 +1,155 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  PATIENT
+  DOCTOR
+  INSURANCE
+  BANK
+}
+
+enum ClaimStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  PAID
+}
+
+enum DocumentType {
+  MEDICAL_REPORT
+  PRESCRIPTION
+  INVOICE
+  RECEIPT
+  IDENTITY_PROOF
+  INSURANCE_POLICY
+  BANK_STATEMENT
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String?
+  role          UserRole
+  phone         String?
+  address       String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Auth
+  accounts      Account[]
+  sessions      Session[]
+  
+  // Role-specific relations
+  patientClaims Claim[]   @relation("PatientClaims")
+  doctorClaims  Claim[]   @relation("DoctorClaims")
+  
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
+
+model Claim {
+  id                String       @id @default(cuid())
+  claimNumber       String       @unique
+  patientId         String
+  doctorId          String?
+  status            ClaimStatus  @default(DRAFT)
+  diagnosis         String
+  treatmentDate     DateTime
+  claimAmount       Decimal      @db.Decimal(10, 2)
+  approvedAmount    Decimal?     @db.Decimal(10, 2)
+  description       String?
+  notes             String?
+  submittedAt       DateTime?
+  approvedAt        DateTime?
+  rejectedAt        DateTime?
+  paidAt            DateTime?
+  rejectionReason   String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  
+  // Relations
+  patient           User         @relation("PatientClaims", fields: [patientId], references: [id])
+  doctor            User?        @relation("DoctorClaims", fields: [doctorId], references: [id])
+  documents         Document[]
+  payments          Payment[]
+  
+  @@map("claims")
+}
+
+model Document {
+  id          String       @id @default(cuid())
+  claimId     String
+  type        DocumentType
+  filename    String
+  originalName String
+  url         String
+  size        Int
+  mimeType    String
+  uploadedAt  DateTime     @default(now())
+  
+  claim       Claim        @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  
+  @@map("documents")
+}
+
+model Payment {
+  id            String    @id @default(cuid())
+  claimId       String
+  amount        Decimal   @db.Decimal(10, 2)
+  paymentDate   DateTime
+  paymentMethod String?
+  transactionId String?
+  notes         String?
+  createdAt     DateTime  @default(now())
+  
+  claim         Claim     @relation(fields: [claimId], references: [id])
+  
+  @@map("payments")
+}
