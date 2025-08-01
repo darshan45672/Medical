@@ -37,7 +37,7 @@ export default function DashboardPage() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950">
         <Header />
         <div className="flex items-center justify-center h-96">
           <LoadingSpinner size="lg" />
@@ -102,68 +102,87 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950">
       <Header />
       
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">{getDashboardTitle()}</h1>
-          <p className="mt-2 text-gray-600">{getWelcomeMessage()}</p>
+      <main className="max-w-7xl mx-auto py-6 sm:py-8 lg:py-12 px-4 sm:px-6 lg:px-8">
+        {/* Hero Section */}
+        <div className="mb-8 sm:mb-12">
+          <div className="text-center sm:text-left">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent mb-3 sm:mb-4">
+              {getDashboardTitle()}
+            </h1>
+            <p className="text-sm sm:text-base lg:text-lg text-gray-600 dark:text-gray-300 max-w-2xl">
+              {getWelcomeMessage()}
+            </p>
+          </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Claims</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12">
+          <Card className="border-0 shadow-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+              <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Claims</CardTitle>
+              <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalClaims}</div>
+              <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{stats.totalClaims}</div>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">All time claims</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Approved</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-600" />
+          <Card className="border-0 shadow-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+              <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Approved</CardTitle>
+              <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded-lg">
+                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.approvedClaims}</div>
+              <div className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400">{stats.approvedClaims}</div>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Successfully processed</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending</CardTitle>
-              <Clock className="h-4 w-4 text-yellow-600" />
+          <Card className="border-0 shadow-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+              <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Pending</CardTitle>
+              <div className="p-2 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg">
+                <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">{stats.pendingClaims}</div>
+              <div className="text-2xl sm:text-3xl font-bold text-yellow-600 dark:text-yellow-400">{stats.pendingClaims}</div>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Under review</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Amount</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+          <Card className="border-0 shadow-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+              <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Amount</CardTitle>
+              <div className="p-2 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
+                <DollarSign className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(stats.totalAmount)}</div>
+              <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(stats.totalAmount)}</div>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Total claim value</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Quick Actions */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Quick Actions</h2>
+        <div className="mb-8 sm:mb-12">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100">Quick Actions</h2>
           </div>
           
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
             {session.user.role === 'PATIENT' && (
               <Link href="/claims/new">
-                <Button>
+                <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
                   <Plus className="h-4 w-4 mr-2" />
                   New Claim
                 </Button>
@@ -171,7 +190,7 @@ export default function DashboardPage() {
             )}
             
             <Link href="/claims">
-              <Button variant="outline">
+              <Button variant="outline" className="w-full sm:w-auto border-gray-300 dark:border-slate-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-300 hover:scale-[1.02]">
                 <FileText className="h-4 w-4 mr-2" />
                 View All Claims
               </Button>
@@ -179,7 +198,7 @@ export default function DashboardPage() {
 
             {(session.user.role === 'INSURANCE' || session.user.role === 'BANK') && (
               <Link href="/users">
-                <Button variant="outline">
+                <Button variant="outline" className="w-full sm:w-auto border-gray-300 dark:border-slate-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-300 hover:scale-[1.02]">
                   <Users className="h-4 w-4 mr-2" />
                   Manage Users
                 </Button>
@@ -189,31 +208,33 @@ export default function DashboardPage() {
         </div>
 
         {/* Recent Claims */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Claims</CardTitle>
-            <CardDescription>
+        <Card className="border-0 shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg">
+          <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
+            <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Claims</CardTitle>
+            <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
               Your latest claims and their current status
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0 sm:p-6">
             {isLoading ? (
-              <div className="flex justify-center py-8">
+              <div className="flex justify-center py-8 sm:py-12">
                 <LoadingSpinner />
               </div>
             ) : claims.length === 0 ? (
-              <div className="text-center py-8">
-                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No claims found</h3>
-                <p className="text-gray-500 mb-4">
+              <div className="text-center py-8 sm:py-12 px-4">
+                <div className="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                  <FileText className="h-8 w-8 sm:h-10 sm:w-10 text-gray-400 dark:text-gray-500" />
+                </div>
+                <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">No claims found</h3>
+                <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4 sm:mb-6 max-w-md mx-auto">
                   {session.user.role === 'PATIENT' 
-                    ? "You haven't submitted any claims yet." 
-                    : "No claims to review at the moment."
+                    ? "You haven't submitted any claims yet. Create your first claim to get started." 
+                    : "No claims to review at the moment. Check back later for new submissions."
                   }
                 </p>
                 {session.user.role === 'PATIENT' && (
                   <Link href="/claims/new">
-                    <Button>
+                    <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
                       <Plus className="h-4 w-4 mr-2" />
                       Create Your First Claim
                     </Button>
@@ -221,44 +242,46 @@ export default function DashboardPage() {
                 )}
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Claim Number</TableHead>
-                    <TableHead>Diagnosis</TableHead>
-                    {session.user.role !== 'PATIENT' && <TableHead>Patient</TableHead>}
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {claims.map((claim: any) => (
-                    <TableRow key={claim.id}>
-                      <TableCell className="font-medium">
-                        {claim.claimNumber}
-                      </TableCell>
-                      <TableCell>{claim.diagnosis}</TableCell>
-                      {session.user.role !== 'PATIENT' && (
-                        <TableCell>{claim.patient.name || claim.patient.email}</TableCell>
-                      )}
-                      <TableCell>{formatCurrency(claim.claimAmount)}</TableCell>
-                      <TableCell>
-                        <StatusBadge status={claim.status} />
-                      </TableCell>
-                      <TableCell>{formatDate(claim.createdAt)}</TableCell>
-                      <TableCell>
-                        <Link href={`/claims/${claim.id}`}>
-                          <Button variant="ghost" size="sm">
-                            View
-                          </Button>
-                        </Link>
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-gray-200 dark:border-slate-700">
+                      <TableHead className="text-gray-700 dark:text-gray-300 font-semibold">Claim Number</TableHead>
+                      <TableHead className="text-gray-700 dark:text-gray-300 font-semibold">Diagnosis</TableHead>
+                      {session.user.role !== 'PATIENT' && <TableHead className="text-gray-700 dark:text-gray-300 font-semibold">Patient</TableHead>}
+                      <TableHead className="text-gray-700 dark:text-gray-300 font-semibold">Amount</TableHead>
+                      <TableHead className="text-gray-700 dark:text-gray-300 font-semibold">Status</TableHead>
+                      <TableHead className="text-gray-700 dark:text-gray-300 font-semibold">Date</TableHead>
+                      <TableHead className="text-gray-700 dark:text-gray-300 font-semibold">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {claims.map((claim: any) => (
+                      <TableRow key={claim.id} className="border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
+                        <TableCell className="font-medium text-gray-900 dark:text-gray-100">
+                          {claim.claimNumber}
+                        </TableCell>
+                        <TableCell className="text-gray-700 dark:text-gray-300">{claim.diagnosis}</TableCell>
+                        {session.user.role !== 'PATIENT' && (
+                          <TableCell className="text-gray-700 dark:text-gray-300">{claim.patient.name || claim.patient.email}</TableCell>
+                        )}
+                        <TableCell className="font-semibold text-gray-900 dark:text-gray-100">{formatCurrency(claim.claimAmount)}</TableCell>
+                        <TableCell>
+                          <StatusBadge status={claim.status} />
+                        </TableCell>
+                        <TableCell className="text-gray-600 dark:text-gray-400">{formatDate(claim.createdAt)}</TableCell>
+                        <TableCell>
+                          <Link href={`/claims/${claim.id}`}>
+                            <Button variant="ghost" size="sm" className="hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                              View
+                            </Button>
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </CardContent>
         </Card>
