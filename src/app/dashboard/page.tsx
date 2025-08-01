@@ -286,12 +286,28 @@ export default function DashboardPage() {
             )}
 
             {session.user.role === 'DOCTOR' && (
-              <Link href="/appointments">
-                <Button variant="outline" className="w-full sm:w-auto border-blue-300 dark:border-blue-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-blue-50 dark:hover:bg-blue-950/20 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 hover:scale-[1.02]">
-                  <CalendarCheck className="h-4 w-4 mr-2" />
-                  View Appointments
-                </Button>
-              </Link>
+              <>
+                <Link href="/appointments">
+                  <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                    <CalendarCheck className="h-4 w-4 mr-2" />
+                    View My Appointments
+                  </Button>
+                </Link>
+                
+                <Link href="/patients">
+                  <Button className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                    <Users className="h-4 w-4 mr-2" />
+                    View My Patients
+                  </Button>
+                </Link>
+                
+                <Link href="/reports/new">
+                  <Button className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Add Reports
+                  </Button>
+                </Link>
+              </>
             )}
           </div>
         </div>
