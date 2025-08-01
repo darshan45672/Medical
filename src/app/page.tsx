@@ -30,7 +30,7 @@ export default function HomePage() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900">
         <LoadingSpinner size="lg" />
       </div>
     )
@@ -50,7 +50,7 @@ export default function HomePage() {
               <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-1.5 sm:p-2 rounded-lg sm:rounded-xl shadow-lg">
                 <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
-              <span className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">
+              <span className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 dark:text-white bg-clip-text text-transparent">
                 MedClaims Pro
               </span>
             </div>
@@ -79,7 +79,7 @@ export default function HomePage() {
             Trusted by 10,000+ Healthcare Providers
           </div>
           
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-gray-900 via-blue-900 to-indigo-900 dark:from-gray-100 dark:via-blue-100 dark:to-indigo-100 bg-clip-text text-transparent mb-4 sm:mb-6 leading-tight px-4 sm:px-0">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl dark:text-white lg:text-7xl font-bold bg-gradient-to-r from-gray-900 via-blue-900 to-indigo-900 dark:from-gray-100 dark:via-blue-100 dark:to-indigo-100 bg-clip-text text-transparent mb-4 sm:mb-6 leading-tight px-4 sm:px-0">
             Insurance Claims
             <br />
             <span className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
@@ -173,7 +173,7 @@ export default function HomePage() {
         {/* User Roles Section */}
         <div className="mb-16 sm:mb-20">
           <div className="text-center mb-12 sm:mb-16 px-4 sm:px-0">
-            <h2 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent mb-4 sm:mb-6">
+            <h2 className="text-3xl sm:text-4xl dark:text-white font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent mb-4 sm:mb-6">
               Built for Every Stakeholder
             </h2>
             <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
@@ -299,7 +299,7 @@ export default function HomePage() {
         {/* CTA Section */}
         <div className="mx-4 sm:mx-0 text-center bg-gradient-to-br from-white via-blue-50/50 to-indigo-50/50 dark:from-slate-800 dark:via-slate-800/50 dark:to-indigo-950/50 rounded-2xl sm:rounded-3xl shadow-2xl p-8 sm:p-12 lg:p-16 border border-gray-200/50 dark:border-slate-700/50 backdrop-blur-sm">
           <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent mb-4 sm:mb-6 leading-tight">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl dark:text-white font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent mb-4 sm:mb-6 leading-tight">
               Ready to streamline your claims process?
             </h2>
             <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 mb-8 sm:mb-10 leading-relaxed">

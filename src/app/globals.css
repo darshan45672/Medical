@@ -5,13 +5,6 @@
   --foreground: #171717;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -23,4 +16,177 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Enhanced Toast Styles */
+.enhanced-toast {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.enhanced-toast::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #3b82f6, #6366f1, #8b5cf6);
+  transition: all 0.3s ease;
+}
+
+/* Success toast styling */
+.enhanced-toast[data-type="success"]::before {
+  background: linear-gradient(90deg, #10b981, #059669, #047857);
+}
+
+/* Error toast styling */
+.enhanced-toast[data-type="error"]::before {
+  background: linear-gradient(90deg, #ef4444, #dc2626, #b91c1c);
+}
+
+/* Warning toast styling */
+.enhanced-toast[data-type="warning"]::before {
+  background: linear-gradient(90deg, #f59e0b, #d97706, #b45309);
+}
+
+/* Info toast styling */
+.enhanced-toast[data-type="info"]::before {
+  background: linear-gradient(90deg, #3b82f6, #2563eb, #1d4ed8);
+}
+
+/* Toast icon styling */
+.enhanced-toast [data-icon] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+/* Success icon */
+.enhanced-toast[data-type="success"] [data-icon] {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+/* Error icon */
+.enhanced-toast[data-type="error"] [data-icon] {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+/* Warning icon */
+.enhanced-toast[data-type="warning"] [data-icon] {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+
+/* Info icon */
+.enhanced-toast[data-type="info"] [data-icon] {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+
+/* Toast content styling */
+.enhanced-toast [data-content] {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.enhanced-toast [data-title] {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: 2px;
+}
+
+.enhanced-toast [data-description] {
+  font-size: 13px;
+  opacity: 0.8;
+  line-height: 1.4;
+}
+
+/* Toast close button styling */
+.enhanced-toast [data-close-button] {
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+  border-radius: 6px;
+  padding: 4px;
+  margin-left: 8px;
+}
+
+.enhanced-toast [data-close-button]:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.enhanced-toast[data-theme="dark"] [data-close-button]:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Animation improvements */
+.enhanced-toast[data-mounted="true"] {
+  animation: toast-slide-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.enhanced-toast[data-swipe-out="true"] {
+  animation: toast-slide-out 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes toast-slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes toast-slide-out {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* Progress bar for auto-dismiss */
+.enhanced-toast[data-with-progress="true"]::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: rgba(59, 130, 246, 0.3);
+  animation: toast-progress var(--toast-duration, 4000ms) linear;
+}
+
+@keyframes toast-progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+/* Hover effects */
+.enhanced-toast:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.enhanced-toast[data-theme="dark"]:hover {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
 }
