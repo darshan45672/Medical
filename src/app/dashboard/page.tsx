@@ -231,7 +231,12 @@ export default function DashboardPage() {
                 </Button>
                 
                 <Button 
-                  onClick={() => setIsAppointmentHistoryOpen(!isAppointmentHistoryOpen)}
+                  onClick={() => {
+                    setIsAppointmentHistoryOpen(!isAppointmentHistoryOpen)
+                    if (!isAppointmentHistoryOpen) {
+                      setIsClaimHistoryOpen(false)
+                    }
+                  }}
                   variant="outline" 
                   className="w-full sm:w-auto border-green-300 dark:border-green-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-green-50 dark:hover:bg-green-950/20 hover:border-green-400 dark:hover:border-green-500 transition-all duration-300 hover:scale-[1.02]"
                   disabled={isLoadingAllAppointments}
@@ -248,7 +253,12 @@ export default function DashboardPage() {
                 </Button>
                 
                 <Button 
-                  onClick={() => setIsClaimHistoryOpen(!isClaimHistoryOpen)}
+                  onClick={() => {
+                    setIsClaimHistoryOpen(!isClaimHistoryOpen)
+                    if (!isClaimHistoryOpen) {
+                      setIsAppointmentHistoryOpen(false)
+                    }
+                  }}
                   variant="outline" 
                   className="w-full sm:w-auto border-gray-300 dark:border-slate-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-300 hover:scale-[1.02]"
                   disabled={isLoadingAllClaims}
