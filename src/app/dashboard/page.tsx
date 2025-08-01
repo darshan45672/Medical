@@ -20,7 +20,9 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  Calendar,
+  CalendarCheck
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -181,20 +183,36 @@ export default function DashboardPage() {
           
           <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
             {session.user.role === 'PATIENT' && (
-              <Link href="/claims/new">
-                <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Claim
-                </Button>
-              </Link>
+              <>
+                <Link href="/claims/new">
+                  <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                    <Plus className="h-4 w-4 mr-2" />
+                    New Claim
+                  </Button>
+                </Link>
+                
+                <Link href="/appointments/new">
+                  <Button className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Book Appointment
+                  </Button>
+                </Link>
+                
+                <Link href="/appointments">
+                  <Button variant="outline" className="w-full sm:w-auto border-green-300 dark:border-green-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-green-50 dark:hover:bg-green-950/20 hover:border-green-400 dark:hover:border-green-500 transition-all duration-300 hover:scale-[1.02]">
+                    <CalendarCheck className="h-4 w-4 mr-2" />
+                    My Appointments
+                  </Button>
+                </Link>
+                
+                <Link href="/claims">
+                  <Button variant="outline" className="w-full sm:w-auto border-gray-300 dark:border-slate-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-300 hover:scale-[1.02]">
+                    <FileText className="h-4 w-4 mr-2" />
+                    View All Claims
+                  </Button>
+                </Link>
+              </>
             )}
-            
-            <Link href="/claims">
-              <Button variant="outline" className="w-full sm:w-auto border-gray-300 dark:border-slate-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-300 hover:scale-[1.02]">
-                <FileText className="h-4 w-4 mr-2" />
-                View All Claims
-              </Button>
-            </Link>
 
             {(session.user.role === 'INSURANCE' || session.user.role === 'BANK') && (
               <Link href="/users">
@@ -204,87 +222,89 @@ export default function DashboardPage() {
                 </Button>
               </Link>
             )}
+
+            {session.user.role === 'DOCTOR' && (
+              <Link href="/appointments">
+                <Button variant="outline" className="w-full sm:w-auto border-blue-300 dark:border-blue-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-blue-50 dark:hover:bg-blue-950/20 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 hover:scale-[1.02]">
+                  <CalendarCheck className="h-4 w-4 mr-2" />
+                  View Appointments
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
 
-        {/* Recent Claims */}
-        <Card className="border-0 shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg">
-          <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
-            <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Claims</CardTitle>
-            <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
-              Your latest claims and their current status
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-0 sm:p-6">
-            {isLoading ? (
-              <div className="flex justify-center py-8 sm:py-12">
-                <LoadingSpinner />
-              </div>
-            ) : claims.length === 0 ? (
-              <div className="text-center py-8 sm:py-12 px-4">
-                <div className="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
-                  <FileText className="h-8 w-8 sm:h-10 sm:w-10 text-gray-400 dark:text-gray-500" />
+        {/* Recent Claims - Only for Patients */}
+        {session.user.role === 'PATIENT' && (
+          <Card className="border-0 shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg">
+            <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
+              <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Claims</CardTitle>
+              <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+                Your latest claims and their current status
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0 sm:p-6">
+              {isLoading ? (
+                <div className="flex justify-center py-8 sm:py-12">
+                  <LoadingSpinner />
                 </div>
-                <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">No claims found</h3>
-                <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4 sm:mb-6 max-w-md mx-auto">
-                  {session.user.role === 'PATIENT' 
-                    ? "You haven't submitted any claims yet. Create your first claim to get started." 
-                    : "No claims to review at the moment. Check back later for new submissions."
-                  }
-                </p>
-                {session.user.role === 'PATIENT' && (
+              ) : claims.length === 0 ? (
+                <div className="text-center py-8 sm:py-12 px-4">
+                  <div className="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                    <FileText className="h-8 w-8 sm:h-10 sm:w-10 text-gray-400 dark:text-gray-500" />
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">No claims found</h3>
+                  <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4 sm:mb-6 max-w-md mx-auto">
+                    You haven't submitted any claims yet. Create your first claim to get started.
+                  </p>
                   <Link href="/claims/new">
                     <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
                       <Plus className="h-4 w-4 mr-2" />
                       Create Your First Claim
                     </Button>
                   </Link>
-                )}
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-gray-200 dark:border-slate-700">
-                      <TableHead className="text-gray-700 dark:text-gray-300 font-semibold">Claim Number</TableHead>
-                      <TableHead className="text-gray-700 dark:text-gray-300 font-semibold">Diagnosis</TableHead>
-                      {session.user.role !== 'PATIENT' && <TableHead className="text-gray-700 dark:text-gray-300 font-semibold">Patient</TableHead>}
-                      <TableHead className="text-gray-700 dark:text-gray-300 font-semibold">Amount</TableHead>
-                      <TableHead className="text-gray-700 dark:text-gray-300 font-semibold">Status</TableHead>
-                      <TableHead className="text-gray-700 dark:text-gray-300 font-semibold">Date</TableHead>
-                      <TableHead className="text-gray-700 dark:text-gray-300 font-semibold">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {claims.map((claim: any) => (
-                      <TableRow key={claim.id} className="border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
-                        <TableCell className="font-medium text-gray-900 dark:text-gray-100">
-                          {claim.claimNumber}
-                        </TableCell>
-                        <TableCell className="text-gray-700 dark:text-gray-300">{claim.diagnosis}</TableCell>
-                        {session.user.role !== 'PATIENT' && (
-                          <TableCell className="text-gray-700 dark:text-gray-300">{claim.patient.name || claim.patient.email}</TableCell>
-                        )}
-                        <TableCell className="font-semibold text-gray-900 dark:text-gray-100">{formatCurrency(claim.claimAmount)}</TableCell>
-                        <TableCell>
-                          <StatusBadge status={claim.status} />
-                        </TableCell>
-                        <TableCell className="text-gray-600 dark:text-gray-400">{formatDate(claim.createdAt)}</TableCell>
-                        <TableCell>
-                          <Link href={`/claims/${claim.id}`}>
-                            <Button variant="ghost" size="sm" className="hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                              View
-                            </Button>
-                          </Link>
-                        </TableCell>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-gray-200 dark:border-slate-700">
+                        <TableHead className="text-gray-700 dark:text-gray-300 font-semibold">Claim Number</TableHead>
+                        <TableHead className="text-gray-700 dark:text-gray-300 font-semibold">Diagnosis</TableHead>
+                        <TableHead className="text-gray-700 dark:text-gray-300 font-semibold">Amount</TableHead>
+                        <TableHead className="text-gray-700 dark:text-gray-300 font-semibold">Status</TableHead>
+                        <TableHead className="text-gray-700 dark:text-gray-300 font-semibold">Date</TableHead>
+                        <TableHead className="text-gray-700 dark:text-gray-300 font-semibold">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                    </TableHeader>
+                    <TableBody>
+                      {claims.map((claim: any) => (
+                        <TableRow key={claim.id} className="border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
+                          <TableCell className="font-medium text-gray-900 dark:text-gray-100">
+                            {claim.claimNumber}
+                          </TableCell>
+                          <TableCell className="text-gray-700 dark:text-gray-300">{claim.diagnosis}</TableCell>
+                          <TableCell className="font-semibold text-gray-900 dark:text-gray-100">{formatCurrency(claim.claimAmount)}</TableCell>
+                          <TableCell>
+                            <StatusBadge status={claim.status} />
+                          </TableCell>
+                          <TableCell className="text-gray-600 dark:text-gray-400">{formatDate(claim.createdAt)}</TableCell>
+                          <TableCell>
+                            <Link href={`/claims/${claim.id}`}>
+                              <Button variant="ghost" size="sm" className="hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                                View
+                              </Button>
+                            </Link>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </main>
     </div>
   )
