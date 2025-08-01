@@ -38,11 +38,13 @@ export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const { data: claimsData, isLoading } = useClaims({ limit: 10 })
+  const { data: allClaimsData, isLoading: isLoadingAllClaims } = useClaims()
   const { data: appointmentsData, isLoading: isLoadingAppointments } = useAppointments({ limit: 10 })
   const { data: allAppointmentsData, isLoading: isLoadingAllAppointments } = useAppointments()
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false)
   const [isNewClaimModalOpen, setIsNewClaimModalOpen] = useState(false)
   const [isAppointmentHistoryOpen, setIsAppointmentHistoryOpen] = useState(false)
+  const [isClaimHistoryOpen, setIsClaimHistoryOpen] = useState(false)
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null)
   const [isClaimDetailsModalOpen, setIsClaimDetailsModalOpen] = useState(false)
   
@@ -245,12 +247,22 @@ export default function DashboardPage() {
                   )}
                 </Button>
                 
-                <Link href="/claims">
-                  <Button variant="outline" className="w-full sm:w-auto border-gray-300 dark:border-slate-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-300 hover:scale-[1.02]">
-                    <FileText className="h-4 w-4 mr-2" />
-                    View All Claims
-                  </Button>
-                </Link>
+                <Button 
+                  onClick={() => setIsClaimHistoryOpen(!isClaimHistoryOpen)}
+                  variant="outline" 
+                  className="w-full sm:w-auto border-gray-300 dark:border-slate-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-300 hover:scale-[1.02]"
+                  disabled={isLoadingAllClaims}
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  View All Claims
+                  {isLoadingAllClaims ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 ml-2"></div>
+                  ) : isClaimHistoryOpen ? (
+                    <ChevronUp className="h-4 w-4 ml-2" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 ml-2" />
+                  )}
+                </Button>
               </>
             )}
 
@@ -584,6 +596,213 @@ export default function DashboardPage() {
                                 View Details
                               </Button>
                             </Link>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Claims History Section */}
+        {session.user.role === 'PATIENT' && isClaimHistoryOpen && (
+          <Card className="border-0 shadow-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg mt-8">
+            <CardHeader className="border-b border-gray-200 dark:border-slate-700">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">
+                  Claims History
+                </CardTitle>
+                <Button
+                  onClick={() => setIsClaimHistoryOpen(false)}
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  <ChevronUp className="h-4 w-4" />
+                </Button>
+              </div>
+              <CardDescription className="text-gray-600 dark:text-gray-400">
+                Complete history of all your insurance claims
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent className="p-0">
+              {isLoadingAllClaims ? (
+                <div className="flex items-center justify-center py-12">
+                  <LoadingSpinner size="lg" />
+                </div>
+              ) : (allClaimsData?.claims || []).length === 0 ? (
+                <div className="text-center py-12 px-4">
+                  <div className="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <FileText className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No claims found</h3>
+                  <p className="text-gray-500 dark:text-gray-400 mb-6">
+                    You haven't submitted any claims yet.
+                  </p>
+                  <Button 
+                    onClick={() => setIsNewClaimModalOpen(true)}
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Your First Claim
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  {/* Desktop Table */}
+                  <div className="hidden lg:block">
+                    <div className="overflow-x-auto max-h-96 overflow-y-auto">
+                      <Table>
+                        <TableHeader className="sticky top-0 bg-white dark:bg-slate-800 z-10">
+                          <TableRow className="border-gray-200 dark:border-slate-700">
+                            <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Claim Number</TableHead>
+                            <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Diagnosis</TableHead>
+                            <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Amount</TableHead>
+                            <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Status</TableHead>
+                            <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Date</TableHead>
+                            <TableHead className="font-semibold text-gray-900 dark:text-gray-100 text-right">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {(allClaimsData?.claims || []).map((claim: any) => (
+                            <TableRow key={claim.id} className="border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
+                              <TableCell className="font-medium">
+                                <div>
+                                  <p className="text-gray-900 dark:text-gray-100 font-mono text-sm">
+                                    {claim.claimNumber}
+                                  </p>
+                                  {claim.doctor && (
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                      Dr. {claim.doctor.name}
+                                    </p>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell className="max-w-xs">
+                                <p className="text-gray-900 dark:text-gray-100 text-sm truncate">
+                                  {claim.diagnosis}
+                                </p>
+                                {claim.description && (
+                                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">
+                                    {claim.description}
+                                  </p>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <div>
+                                  <p className="text-gray-900 dark:text-gray-100 font-semibold">
+                                    {formatCurrency(claim.claimAmount)}
+                                  </p>
+                                  {claim.approvedAmount && (
+                                    <p className="text-xs text-green-600 dark:text-green-400">
+                                      Approved: {formatCurrency(claim.approvedAmount)}
+                                    </p>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <StatusBadge status={claim.status} />
+                              </TableCell>
+                              <TableCell>
+                                <div>
+                                  <p className="text-gray-900 dark:text-gray-100 text-sm">
+                                    {formatDate(claim.createdAt)}
+                                  </p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    {formatDate(claim.treatmentDate)}
+                                  </p>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Button 
+                                  onClick={() => handleViewClaimDetails(claim.id)}
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400"
+                                >
+                                  View Details
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+
+                  {/* Mobile Cards */}
+                  <div className="lg:hidden">
+                    <div className="divide-y divide-gray-200 dark:divide-slate-700 max-h-96 overflow-y-auto">
+                      {(allClaimsData?.claims || []).map((claim: any) => (
+                        <div key={claim.id} className="p-4 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm font-mono">
+                                {claim.claimNumber}
+                              </h4>
+                              {claim.doctor && (
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                  Dr. {claim.doctor.name}
+                                </p>
+                              )}
+                            </div>
+                            <StatusBadge status={claim.status} />
+                          </div>
+
+                          <div className="space-y-3 mb-3">
+                            <div>
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Diagnosis:</p>
+                              <p className="text-sm text-gray-900 dark:text-gray-100 font-medium">
+                                {claim.diagnosis}
+                              </p>
+                              {claim.description && (
+                                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 bg-gray-50 dark:bg-slate-700 rounded p-2">
+                                  {claim.description}
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Claim Amount:</p>
+                                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                  {formatCurrency(claim.claimAmount)}
+                                </p>
+                                {claim.approvedAmount && (
+                                  <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                                    Approved: {formatCurrency(claim.approvedAmount)}
+                                  </p>
+                                )}
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Dates:</p>
+                                <div className="space-y-1">
+                                  <div className="flex items-center text-xs text-gray-600 dark:text-gray-400">
+                                    <Calendar className="h-3 w-3 mr-1 flex-shrink-0" />
+                                    <span>Created: {formatDate(claim.createdAt)}</span>
+                                  </div>
+                                  <div className="flex items-center text-xs text-gray-600 dark:text-gray-400">
+                                    <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
+                                    <span>Treatment: {formatDate(claim.treatmentDate)}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex justify-end">
+                            <Button 
+                              onClick={() => handleViewClaimDetails(claim.id)}
+                              variant="ghost" 
+                              size="sm" 
+                              className="w-full sm:w-auto hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                            >
+                              View Details
+                            </Button>
                           </div>
                         </div>
                       ))}
