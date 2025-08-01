@@ -3,6 +3,8 @@ import { AppointmentStatus } from '@prisma/client'
 
 interface AppointmentFilters {
   status?: AppointmentStatus
+  doctorId?: string
+  patientId?: string
   page?: number
   limit?: number
 }
@@ -25,6 +27,8 @@ export function useAppointments(filters: AppointmentFilters = {}) {
   const params = new URLSearchParams()
   
   if (filters.status) params.append('status', filters.status)
+  if (filters.doctorId) params.append('doctorId', filters.doctorId)
+  if (filters.patientId) params.append('patientId', filters.patientId)
   if (filters.page) params.append('page', filters.page.toString())
   if (filters.limit) params.append('limit', filters.limit.toString())
 

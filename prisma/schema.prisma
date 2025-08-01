@@ -29,37 +29,55 @@ enum DocumentType {
   SCAN_REPORT
 }
 
+enum ReportType {
+  DIAGNOSIS_REPORT
+  TREATMENT_SUMMARY
+  PRESCRIPTION_REPORT
+  LAB_REPORT
+  SCAN_REPORT
+  FOLLOW_UP_REPORT
+  DISCHARGE_SUMMARY
+}
+
 enum AppointmentStatus {
   PENDING
   ACCEPTED
   REJECTED
   CANCELLED
+  CONSULTED
   COMPLETED
 }
 
 model User {
-  id            String       @id @default(cuid())
-  email         String       @unique
-  name          String?
-  password      String?
-  role          UserRole
-  phone         String?
-  address       String?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String?
+  role      UserRole
+  phone     String?
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  accounts      Account[]
-  sessions      Session[]
+  accounts Account[]
+  sessions Session[]
 
   // Relations
-  patientClaims Claim[]      @relation("PatientClaims")
-  doctorClaims  Claim[]      @relation("DoctorClaims")
+  patientClaims Claim[] @relation("PatientClaims")
+  doctorClaims  Claim[] @relation("DoctorClaims")
 
   uploadedDocuments Document[] @relation("UploadedDocuments")
 
   appointmentsAsPatient Appointment[] @relation("AppointmentPatient")
   appointmentsAsDoctor  Appointment[] @relation("AppointmentDoctor")
-  
+
+  // Patient Reports Relations
+  patientReports PatientReport[] @relation("PatientReports")
+  doctorReports  PatientReport[] @relation("DoctorReports")
+
+  // Claim Report Attachments
+  claimReportAttachments ClaimReport[] @relation("ClaimReportAttachments")
+
   // Remove: patient, doctor, insurance, bank (not used or modeled separately)
 
   @@map("users")
@@ -105,81 +123,128 @@ model VerificationToken {
 }
 
 model Appointment {
-  id          String             @id @default(cuid())
+  id          String            @id @default(cuid())
   patientId   String
   doctorId    String
-  status      AppointmentStatus  @default(PENDING)
+  status      AppointmentStatus @default(PENDING)
   scheduledAt DateTime
   notes       String?
-  createdAt   DateTime           @default(now())
+  createdAt   DateTime          @default(now())
 
-  patient     User               @relation("AppointmentPatient", fields: [patientId], references: [id])
-  doctor      User               @relation("AppointmentDoctor", fields: [doctorId], references: [id])
-  
-  documents   Document[]         // Optional: if reports are tied to appointments
+  patient User @relation("AppointmentPatient", fields: [patientId], references: [id])
+  doctor  User @relation("AppointmentDoctor", fields: [doctorId], references: [id])
+
+  documents      Document[] // Optional: if reports are tied to appointments
+  patientReports PatientReport[] // Reports generated for this appointment
 }
 
 model Claim {
-  id                String       @id @default(cuid())
-  claimNumber       String       @unique
-  patientId         String
-  doctorId          String?
-  status            ClaimStatus  @default(DRAFT)
-  diagnosis         String
-  treatmentDate     DateTime
-  claimAmount       Decimal      @db.Decimal(10, 2)
-  approvedAmount    Decimal?     @db.Decimal(10, 2)
-  description       String?
-  notes             String?
-  submittedAt       DateTime?
-  approvedAt        DateTime?
-  rejectedAt        DateTime?
-  paidAt            DateTime?
-  rejectionReason   String?
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
+  id              String      @id @default(cuid())
+  claimNumber     String      @unique
+  patientId       String
+  doctorId        String?
+  status          ClaimStatus @default(DRAFT)
+  diagnosis       String
+  treatmentDate   DateTime
+  claimAmount     Decimal     @db.Decimal(10, 2)
+  approvedAmount  Decimal?    @db.Decimal(10, 2)
+  description     String?
+  notes           String?
+  submittedAt     DateTime?
+  approvedAt      DateTime?
+  rejectedAt      DateTime?
+  paidAt          DateTime?
+  rejectionReason String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 
   // Relations
-  patient           User         @relation("PatientClaims", fields: [patientId], references: [id])
-  doctor            User?        @relation("DoctorClaims", fields: [doctorId], references: [id])
-  documents         Document[]
-  payments          Payment[]
+  patient      User          @relation("PatientClaims", fields: [patientId], references: [id])
+  doctor       User?         @relation("DoctorClaims", fields: [doctorId], references: [id])
+  documents    Document[]
+  payments     Payment[]
+  claimReports ClaimReport[] // Patient reports attached to this claim
 
   @@map("claims")
 }
 
 model Document {
-  id           String       @id @default(cuid())
-  claimId      String?
-  appointmentId String?     // Optional link to appointment
-  type         DocumentType
-  filename     String
-  originalName String
-  url          String
-  size         Int
-  mimeType     String
-  uploadedAt   DateTime     @default(now())
-  uploadedById String?
+  id            String       @id @default(cuid())
+  claimId       String?
+  appointmentId String? // Optional link to appointment
+  type          DocumentType
+  filename      String
+  originalName  String
+  url           String
+  size          Int
+  mimeType      String
+  uploadedAt    DateTime     @default(now())
+  uploadedById  String?
 
   // Relations
-  uploadedBy   User?        @relation("UploadedDocuments", fields: [uploadedById], references: [id])
-  claim        Claim?       @relation(fields: [claimId], references: [id], onDelete: Cascade)
-  appointment  Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  uploadedBy  User?        @relation("UploadedDocuments", fields: [uploadedById], references: [id])
+  claim       Claim?       @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  appointment Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
 
   @@map("documents")
 }
 
 model Payment {
-  id            String    @id @default(cuid())
+  id            String   @id @default(cuid())
   claimId       String
-  amount        Decimal   @db.Decimal(10, 2)
+  amount        Decimal  @db.Decimal(10, 2)
   paymentDate   DateTime
   paymentMethod String?
   transactionId String?
   notes         String?
-  createdAt     DateTime  @default(now())
+  createdAt     DateTime @default(now())
 
-  claim         Claim     @relation(fields: [claimId], references: [id])
+  claim Claim @relation(fields: [claimId], references: [id])
 
   @@map("payments")
+}
+
+model PatientReport {
+  id              String     @id @default(cuid())
+  patientId       String
+  doctorId        String
+  appointmentId   String? // Optional link to specific appointment
+  reportType      ReportType
+  title           String
+  description     String
+  diagnosis       String?
+  treatment       String?
+  medications     String? // JSON string or text field for medication details
+  recommendations String?
+  followUpDate    DateTime?
+  documentUrl     String? // Optional file attachment URL
+  isActive        Boolean    @default(true)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  // Relations
+  patient     User         @relation("PatientReports", fields: [patientId], references: [id])
+  doctor      User         @relation("DoctorReports", fields: [doctorId], references: [id])
+  appointment Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
+  // Reports can be attached to claims
+  claimReports ClaimReport[]
+
+  @@map("patient_reports")
+}
+
+model ClaimReport {
+  id         String   @id @default(cuid())
+  claimId    String
+  reportId   String
+  attachedAt DateTime @default(now())
+  attachedBy String // User who attached the report to claim
+
+  // Relations
+  claim  Claim         @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  report PatientReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  user   User          @relation("ClaimReportAttachments", fields: [attachedBy], references: [id])
+
+  @@unique([claimId, reportId]) // Prevent duplicate attachments
+  @@map("claim_reports")
 }

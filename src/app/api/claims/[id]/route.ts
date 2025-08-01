@@ -27,6 +27,20 @@ export async function GET(
         },
         documents: true,
         payments: true,
+        claimReports: {
+          include: {
+            report: {
+              include: {
+                doctor: {
+                  select: { id: true, name: true, email: true }
+                },
+                appointment: {
+                  select: { id: true, scheduledAt: true }
+                }
+              }
+            }
+          }
+        }
       },
     })
 
@@ -121,6 +135,20 @@ export async function PUT(
         },
         documents: true,
         payments: true,
+        claimReports: {
+          include: {
+            report: {
+              include: {
+                doctor: {
+                  select: { id: true, name: true, email: true }
+                },
+                appointment: {
+                  select: { id: true, scheduledAt: true }
+                }
+              }
+            }
+          }
+        }
       },
     })
 

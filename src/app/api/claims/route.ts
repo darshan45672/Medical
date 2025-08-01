@@ -42,6 +42,17 @@ export async function GET(request: NextRequest) {
         },
         documents: true,
         payments: true,
+        claimReports: {
+          include: {
+            report: {
+              include: {
+                doctor: {
+                  select: { id: true, name: true, email: true }
+                }
+              }
+            }
+          }
+        }
       },
       orderBy: { createdAt: 'desc' },
       skip,

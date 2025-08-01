@@ -13,7 +13,7 @@ import { BookAppointmentModal } from '@/components/ui/book-appointment-modal'
 import { AppointmentStatusBadge } from '@/components/ui/appointment-status-badge'
 import { ClaimDetailsModal } from '@/components/ui/claim-details-modal'
 import { NewClaimModal } from '@/components/ui/new-claim-modal'
-import { AddReportModal } from '@/components/ui/add-report-modal'
+import { CreatePatientReportModal } from '@/components/ui/create-patient-report-modal'
 import { Carousel } from '@/components/ui/carousel'
 import { Header } from '@/components/layout/header'
 import { useClaims, useClaim } from '@/hooks/use-claims'
@@ -26,8 +26,6 @@ import {
   DollarSign, 
   Clock,
   CheckCircle,
-  XCircle,
-  AlertCircle,
   Calendar,
   CalendarCheck,
   ChevronDown,
@@ -38,6 +36,33 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 
+// Type interfaces
+interface Claim {
+  id: string
+  claimNumber: string
+  status: string
+  claimAmount: string
+  patientName: string
+  dateSubmitted: string
+  description: string
+}
+
+interface Appointment {
+  id: string
+  patientName: string
+  doctorName: string
+  appointmentDate: string
+  status: string
+  type: string
+}
+
+interface User {
+  id: string
+  name: string
+  email: string
+  role: string
+}
+
 export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -47,7 +72,7 @@ export default function DashboardPage() {
   const { data: allAppointmentsData, isLoading: isLoadingAllAppointments } = useAppointments()
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false)
   const [isNewClaimModalOpen, setIsNewClaimModalOpen] = useState(false)
-  const [isAddReportModalOpen, setIsAddReportModalOpen] = useState(false)
+  const [isCreateReportModalOpen, setIsCreateReportModalOpen] = useState(false)
   const [isAppointmentHistoryOpen, setIsAppointmentHistoryOpen] = useState(false)
   const [isClaimHistoryOpen, setIsClaimHistoryOpen] = useState(false)
   const [isAppointmentManagementOpen, setIsAppointmentManagementOpen] = useState(false)
@@ -93,10 +118,10 @@ export default function DashboardPage() {
   // Calculate stats based on user role
   const getStats = () => {
     const totalClaims = claims.length
-    const approvedClaims = claims.filter((c: any) => c.status === 'APPROVED' || c.status === 'PAID').length
-    const pendingClaims = claims.filter((c: any) => c.status === 'SUBMITTED' || c.status === 'UNDER_REVIEW').length
-    const rejectedClaims = claims.filter((c: any) => c.status === 'REJECTED').length
-    const totalAmount = claims.reduce((sum: number, claim: any) => sum + parseFloat(claim.claimAmount), 0)
+    const approvedClaims = claims.filter((c: Claim) => c.status === 'APPROVED' || c.status === 'PAID').length
+    const pendingClaims = claims.filter((c: Claim) => c.status === 'SUBMITTED' || c.status === 'UNDER_REVIEW').length
+    const rejectedClaims = claims.filter((c: Claim) => c.status === 'REJECTED').length
+    const totalAmount = claims.reduce((sum: number, claim: Claim) => sum + parseFloat(claim.claimAmount), 0)
 
     return {
       totalClaims,
@@ -331,7 +356,7 @@ export default function DashboardPage() {
                 </Link>
                 
                 <Button 
-                  onClick={() => setIsAddReportModalOpen(true)}
+                  onClick={() => setIsCreateReportModalOpen(true)}
                   className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
                 >
                   <FileText className="h-4 w-4 mr-2" />
@@ -560,7 +585,7 @@ export default function DashboardPage() {
                             <Button 
                               size="sm" 
                               className="w-full bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white"
-                              onClick={() => setIsAddReportModalOpen(true)}
+                              onClick={() => setIsCreateReportModalOpen(true)}
                             >
                               Add Follow-up Report
                             </Button>
@@ -843,7 +868,7 @@ export default function DashboardPage() {
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      onClick={() => setIsAddReportModalOpen(true)}
+                                      onClick={() => setIsCreateReportModalOpen(true)}
                                       className="border-purple-300 text-purple-600 hover:bg-purple-50 dark:border-purple-600 dark:text-purple-400 dark:hover:bg-purple-950/20 px-3 py-1 h-8 text-xs font-medium rounded-md transition-all duration-200 hover:scale-105 hover:shadow-md"
                                     >
                                       <FileText className="h-3 w-3 mr-1" />
@@ -1412,10 +1437,10 @@ export default function DashboardPage() {
         onOpenChange={setIsNewClaimModalOpen}
       />
 
-      {/* Add Report Modal */}
-      <AddReportModal
-        open={isAddReportModalOpen}
-        onOpenChange={setIsAddReportModalOpen}
+      {/* Create Patient Report Modal */}
+      <CreatePatientReportModal
+        isOpen={isCreateReportModalOpen}
+        onClose={() => setIsCreateReportModalOpen(false)}
       />
 
       {/* Claim Details Modal */}
