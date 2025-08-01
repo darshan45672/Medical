@@ -2,13 +2,14 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import { BookAppointmentModal } from '@/components/ui/book-appointment-modal'
 import { Header } from '@/components/layout/header'
 import { useClaims } from '@/hooks/use-claims'
 import { formatCurrency, formatDate } from '@/lib/utils'
@@ -30,6 +31,7 @@ export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const { data: claimsData, isLoading } = useClaims({ limit: 10 })
+  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false)
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -191,12 +193,13 @@ export default function DashboardPage() {
                   </Button>
                 </Link>
                 
-                <Link href="/appointments/new">
-                  <Button className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Book Appointment
-                  </Button>
-                </Link>
+                <Button 
+                  onClick={() => setIsAppointmentModalOpen(true)}
+                  className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+                >
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Book Appointment
+                </Button>
                 
                 <Link href="/appointments">
                   <Button variant="outline" className="w-full sm:w-auto border-green-300 dark:border-green-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-green-50 dark:hover:bg-green-950/20 hover:border-green-400 dark:hover:border-green-500 transition-all duration-300 hover:scale-[1.02]">
@@ -306,6 +309,12 @@ export default function DashboardPage() {
           </Card>
         )}
       </main>
+      
+      {/* Appointment Booking Modal */}
+      <BookAppointmentModal 
+        open={isAppointmentModalOpen} 
+        onOpenChange={setIsAppointmentModalOpen} 
+      />
     </div>
   )
 }
