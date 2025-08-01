@@ -11,9 +11,11 @@ import { StatusBadge } from '@/components/ui/status-badge'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { BookAppointmentModal } from '@/components/ui/book-appointment-modal'
 import { AppointmentStatusBadge } from '@/components/ui/appointment-status-badge'
+import { ClaimDetailsModal } from '@/components/ui/claim-details-modal'
+import { NewClaimModal } from '@/components/ui/new-claim-modal'
 import { Carousel } from '@/components/ui/carousel'
 import { Header } from '@/components/layout/header'
-import { useClaims } from '@/hooks/use-claims'
+import { useClaims, useClaim } from '@/hooks/use-claims'
 import { useAppointments } from '@/hooks/use-appointments'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { 
@@ -26,7 +28,9 @@ import {
   XCircle,
   AlertCircle,
   Calendar,
-  CalendarCheck
+  CalendarCheck,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -35,7 +39,14 @@ export default function DashboardPage() {
   const router = useRouter()
   const { data: claimsData, isLoading } = useClaims({ limit: 10 })
   const { data: appointmentsData, isLoading: isLoadingAppointments } = useAppointments({ limit: 10 })
+  const { data: allAppointmentsData, isLoading: isLoadingAllAppointments } = useAppointments()
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false)
+  const [isNewClaimModalOpen, setIsNewClaimModalOpen] = useState(false)
+  const [isAppointmentHistoryOpen, setIsAppointmentHistoryOpen] = useState(false)
+  const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null)
+  const [isClaimDetailsModalOpen, setIsClaimDetailsModalOpen] = useState(false)
+  
+  const { data: selectedClaimData } = useClaim(selectedClaimId || '')
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -60,6 +71,16 @@ export default function DashboardPage() {
 
   const claims = claimsData?.claims || []
   const appointments = appointmentsData?.appointments || []
+
+  const handleViewClaimDetails = (claimId: string) => {
+    setSelectedClaimId(claimId)
+    setIsClaimDetailsModalOpen(true)
+  }
+
+  const handleCloseClaimDetails = () => {
+    setIsClaimDetailsModalOpen(false)
+    setSelectedClaimId(null)
+  }
 
   // Calculate stats based on user role
   const getStats = () => {
@@ -191,12 +212,13 @@ export default function DashboardPage() {
           <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
             {session.user.role === 'PATIENT' && (
               <>
-                <Link href="/claims/new">
-                  <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
-                    <Plus className="h-4 w-4 mr-2" />
-                    New Claim
-                  </Button>
-                </Link>
+                <Button 
+                  onClick={() => setIsNewClaimModalOpen(true)}
+                  className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Claim
+                </Button>
                 
                 <Button 
                   onClick={() => setIsAppointmentModalOpen(true)}
@@ -206,12 +228,22 @@ export default function DashboardPage() {
                   Book Appointment
                 </Button>
                 
-                <Link href="/appointments">
-                  <Button variant="outline" className="w-full sm:w-auto border-green-300 dark:border-green-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-green-50 dark:hover:bg-green-950/20 hover:border-green-400 dark:hover:border-green-500 transition-all duration-300 hover:scale-[1.02]">
-                    <CalendarCheck className="h-4 w-4 mr-2" />
-                    My Appointments
-                  </Button>
-                </Link>
+                <Button 
+                  onClick={() => setIsAppointmentHistoryOpen(!isAppointmentHistoryOpen)}
+                  variant="outline" 
+                  className="w-full sm:w-auto border-green-300 dark:border-green-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-green-50 dark:hover:bg-green-950/20 hover:border-green-400 dark:hover:border-green-500 transition-all duration-300 hover:scale-[1.02]"
+                  disabled={isLoadingAllAppointments}
+                >
+                  <CalendarCheck className="h-4 w-4 mr-2" />
+                  My Appointments
+                  {isLoadingAllAppointments ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 ml-2"></div>
+                  ) : isAppointmentHistoryOpen ? (
+                    <ChevronUp className="h-4 w-4 ml-2" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 ml-2" />
+                  )}
+                </Button>
                 
                 <Link href="/claims">
                   <Button variant="outline" className="w-full sm:w-auto border-gray-300 dark:border-slate-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-300 hover:scale-[1.02]">
@@ -306,11 +338,14 @@ export default function DashboardPage() {
                           </div>
                           
                           <div className="mt-4 pt-3 border-t border-gray-200 dark:border-slate-700">
-                            <Link href={`/claims/${claim.id}`} className="w-full">
-                              <Button variant="ghost" size="sm" className="w-full hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                                View Details
-                              </Button>
-                            </Link>
+                            <Button 
+                              onClick={() => handleViewClaimDetails(claim.id)}
+                              variant="ghost" 
+                              size="sm" 
+                              className="w-full hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                            >
+                              View Details
+                            </Button>
                           </div>
                         </CardContent>
                       </Card>
@@ -401,12 +436,183 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         )}
+
+        {/* Appointment History Section */}
+        {session.user.role === 'PATIENT' && isAppointmentHistoryOpen && (
+          <Card className="border-0 shadow-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg">
+            <CardHeader className="border-b border-gray-200 dark:border-slate-700">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">
+                  Appointment History
+                </CardTitle>
+                <Button
+                  onClick={() => setIsAppointmentHistoryOpen(false)}
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  <ChevronUp className="h-4 w-4" />
+                </Button>
+              </div>
+              <CardDescription className="text-gray-600 dark:text-gray-400">
+                Complete history of all your appointments
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent className="p-0">
+              {isLoadingAllAppointments ? (
+                <div className="flex items-center justify-center py-12">
+                  <LoadingSpinner size="lg" />
+                </div>
+              ) : (allAppointmentsData?.appointments || []).length === 0 ? (
+                <div className="text-center py-12 px-4">
+                  <div className="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <Calendar className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No appointments found</h3>
+                  <p className="text-gray-500 dark:text-gray-400 mb-6">
+                    You haven't booked any appointments yet.
+                  </p>
+                  <Button 
+                    onClick={() => setIsAppointmentModalOpen(true)}
+                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                  >
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Book Your First Appointment
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  {/* Desktop Table */}
+                  <div className="hidden lg:block">
+                    <div className="overflow-x-auto max-h-96 overflow-y-auto">
+                      <Table>
+                        <TableHeader className="sticky top-0 bg-white dark:bg-slate-800 z-10">
+                          <TableRow className="border-gray-200 dark:border-slate-700">
+                            <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Doctor</TableHead>
+                            <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Date & Time</TableHead>
+                            <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Status</TableHead>
+                            <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Notes</TableHead>
+                            <TableHead className="font-semibold text-gray-900 dark:text-gray-100 text-right">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {(allAppointmentsData?.appointments || []).map((appointment: any) => (
+                            <TableRow key={appointment.id} className="border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
+                              <TableCell className="font-medium">
+                                <div>
+                                  <p className="text-gray-900 dark:text-gray-100">
+                                    Dr. {appointment.doctor?.name || 'Unknown Doctor'}
+                                  </p>
+                                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                                    {appointment.doctor?.email || 'No email'}
+                                  </p>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <div>
+                                  <p className="text-gray-900 dark:text-gray-100">
+                                    {formatDate(appointment.scheduledAt)}
+                                  </p>
+                                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                                    {new Date(appointment.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </p>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <AppointmentStatusBadge status={appointment.status} />
+                              </TableCell>
+                              <TableCell className="max-w-xs">
+                                <p className="text-gray-700 dark:text-gray-300 text-sm truncate">
+                                  {appointment.notes || 'No notes provided'}
+                                </p>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Link href={`/appointments/${appointment.id}`}>
+                                  <Button variant="ghost" size="sm" className="hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400">
+                                    View Details
+                                  </Button>
+                                </Link>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+
+                  {/* Mobile Cards */}
+                  <div className="lg:hidden">
+                    <div className="divide-y divide-gray-200 dark:divide-slate-700 max-h-96 overflow-y-auto">
+                      {(allAppointmentsData?.appointments || []).map((appointment: any) => (
+                        <div key={appointment.id} className="p-4 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                                Dr. {appointment.doctor?.name || 'Unknown Doctor'}
+                              </h4>
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                {appointment.doctor?.email || 'No email'}
+                              </p>
+                            </div>
+                            <AppointmentStatusBadge status={appointment.status} />
+                          </div>
+
+                          <div className="space-y-2 mb-3">
+                            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                              <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
+                              <span>{formatDate(appointment.scheduledAt)}</span>
+                            </div>
+                            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                              <Clock className="h-4 w-4 mr-2 flex-shrink-0" />
+                              <span>{new Date(appointment.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                          </div>
+
+                          {appointment.notes && (
+                            <div className="mb-3">
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Notes:</p>
+                              <p className="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-slate-700 rounded p-2">
+                                {appointment.notes}
+                              </p>
+                            </div>
+                          )}
+
+                          <div className="flex justify-end">
+                            <Link href={`/appointments/${appointment.id}`} className="w-full sm:w-auto">
+                              <Button variant="ghost" size="sm" className="w-full sm:w-auto hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                                View Details
+                              </Button>
+                            </Link>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </main>
       
       {/* Appointment Booking Modal */}
       <BookAppointmentModal 
         open={isAppointmentModalOpen} 
         onOpenChange={setIsAppointmentModalOpen} 
+      />
+
+      {/* New Claim Modal */}
+      <NewClaimModal
+        open={isNewClaimModalOpen}
+        onOpenChange={setIsNewClaimModalOpen}
+      />
+
+      {/* Claim Details Modal */}
+      <ClaimDetailsModal
+        open={isClaimDetailsModalOpen}
+        onOpenChange={handleCloseClaimDetails}
+        claim={selectedClaimData}
       />
     </div>
   )
