@@ -64,6 +64,8 @@ model User {
   appointmentsAsPatient Appointment[] @relation("AppointmentPatient")
   appointmentsAsDoctor  Appointment[] @relation("AppointmentDoctor")
   
+  // Remove: patient, doctor, insurance, bank (not used or modeled separately)
+
   @@map("users")
 }
 

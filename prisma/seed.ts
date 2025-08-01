@@ -35,7 +35,7 @@ async function main() {
     },
   })
 
-  const insurance = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: 'insurance@demo.com' },
     update: {},
     create: {
@@ -48,7 +48,7 @@ async function main() {
     },
   })
 
-  const bank = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: 'bank@demo.com' },
     update: {},
     create: {
