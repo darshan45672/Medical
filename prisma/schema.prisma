@@ -33,24 +33,36 @@ enum DocumentType {
   BANK_STATEMENT
 }
 
+enum AppointmentStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+  COMPLETED
+}
+
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
+  id            String       @id @default(cuid())
+  email         String       @unique
   name          String?
   password      String?
   role          UserRole
   phone         String?
   address       String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  // Auth
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
   accounts      Account[]
   sessions      Session[]
-  
-  // Role-specific relations
-  patientClaims Claim[]   @relation("PatientClaims")
-  doctorClaims  Claim[]   @relation("DoctorClaims")
+
+  // Relations
+  patientClaims Claim[]      @relation("PatientClaims")
+  doctorClaims  Claim[]      @relation("DoctorClaims")
+
+  uploadedDocuments Document[] @relation("UploadedDocuments")
+
+  appointmentsAsPatient Appointment[] @relation("AppointmentPatient")
+  appointmentsAsDoctor  Appointment[] @relation("AppointmentDoctor")
   
   @@map("users")
 }
@@ -94,6 +106,21 @@ model VerificationToken {
   @@map("verificationtokens")
 }
 
+model Appointment {
+  id          String             @id @default(cuid())
+  patientId   String
+  doctorId    String
+  status      AppointmentStatus  @default(PENDING)
+  scheduledAt DateTime
+  notes       String?
+  createdAt   DateTime           @default(now())
+
+  patient     User               @relation("AppointmentPatient", fields: [patientId], references: [id])
+  doctor      User               @relation("AppointmentDoctor", fields: [doctorId], references: [id])
+  
+  documents   Document[]         // Optional: if reports are tied to appointments
+}
+
 model Claim {
   id                String       @id @default(cuid())
   claimNumber       String       @unique
@@ -113,29 +140,34 @@ model Claim {
   rejectionReason   String?
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
-  
+
   // Relations
   patient           User         @relation("PatientClaims", fields: [patientId], references: [id])
   doctor            User?        @relation("DoctorClaims", fields: [doctorId], references: [id])
   documents         Document[]
   payments          Payment[]
-  
+
   @@map("claims")
 }
 
 model Document {
-  id          String       @id @default(cuid())
-  claimId     String
-  type        DocumentType
-  filename    String
+  id           String       @id @default(cuid())
+  claimId      String?
+  appointmentId String?     // Optional link to appointment
+  type         DocumentType
+  filename     String
   originalName String
-  url         String
-  size        Int
-  mimeType    String
-  uploadedAt  DateTime     @default(now())
-  
-  claim       Claim        @relation(fields: [claimId], references: [id], onDelete: Cascade)
-  
+  url          String
+  size         Int
+  mimeType     String
+  uploadedAt   DateTime     @default(now())
+  uploadedById String?
+
+  // Relations
+  uploadedBy   User?        @relation("UploadedDocuments", fields: [uploadedById], references: [id])
+  claim        Claim?       @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  appointment  Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
   @@map("documents")
 }
 
@@ -148,8 +180,8 @@ model Payment {
   transactionId String?
   notes         String?
   createdAt     DateTime  @default(now())
-  
+
   claim         Claim     @relation(fields: [claimId], references: [id])
-  
+
   @@map("payments")
 }
