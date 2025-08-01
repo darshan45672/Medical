@@ -712,6 +712,166 @@ export default function DashboardPage() {
           </Card>
         )}
 
+        {/* Upcoming Accepted Appointments - Only for Doctors */}
+        {session.user.role === 'DOCTOR' && (
+          <Card className="border-0 shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg mb-8 sm:mb-12">
+            <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
+              <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                Upcoming Accepted Appointments
+              </CardTitle>
+              <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+                Your confirmed appointments scheduled for the future
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0 sm:p-6">
+              {isLoadingAllAppointments ? (
+                <div className="flex justify-center py-8 sm:py-12">
+                  <LoadingSpinner />
+                </div>
+              ) : (() => {
+                // Filter upcoming accepted appointments for the doctor
+                const upcomingAcceptedAppointments = allAppointmentsData?.appointments?.filter((appointment: any) => 
+                  appointment.doctorId === session?.user?.id && 
+                  new Date(appointment.scheduledAt) > new Date() &&
+                  appointment.status === 'ACCEPTED'
+                ) || []
+
+                return upcomingAcceptedAppointments.length === 0 ? (
+                  <div className="text-center py-8 sm:py-12 px-4">
+                    <div className="bg-gradient-to-r from-green-100 to-emerald-200 dark:from-green-900 dark:to-emerald-800 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                      <CalendarCheck className="h-8 w-8 sm:h-10 sm:w-10 text-green-600 dark:text-green-400" />
+                    </div>
+                    <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">
+                      No upcoming appointments
+                    </h3>
+                    <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+                      You don't have any confirmed appointments scheduled for the future.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 border-green-200 dark:border-green-800">
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Patient</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Date & Time</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Contact</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Time Until</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Status</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100 text-center">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {upcomingAcceptedAppointments
+                          .sort((a: any, b: any) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
+                          .map((appointment: any) => {
+                            const appointmentDate = new Date(appointment.scheduledAt)
+                            const now = new Date()
+                            const diffInHours = (appointmentDate.getTime() - now.getTime()) / (1000 * 60 * 60)
+                            const diffInDays = Math.ceil(diffInHours / 24)
+                            
+                            const getTimeUntil = () => {
+                              if (diffInHours < 1) return 'Very soon'
+                              if (diffInHours < 24) return `${Math.ceil(diffInHours)} hours`
+                              if (diffInDays === 1) return 'Tomorrow'
+                              return `${diffInDays} days`
+                            }
+
+                            const getTimeColor = () => {
+                              if (diffInHours < 2) return 'text-red-600 dark:text-red-400 font-semibold'
+                              if (diffInHours < 24) return 'text-orange-600 dark:text-orange-400 font-medium'
+                              return 'text-gray-600 dark:text-gray-400'
+                            }
+
+                            return (
+                              <TableRow 
+                                key={appointment.id}
+                                className="hover:bg-gradient-to-r hover:from-green-50/50 hover:to-emerald-50/50 dark:hover:from-green-950/20 dark:hover:to-emerald-950/20 transition-all duration-200 border-gray-200 dark:border-slate-700"
+                              >
+                                <TableCell>
+                                  <div className="flex items-center space-x-3">
+                                    <div className="p-2 bg-gradient-to-r from-green-100 to-emerald-200 dark:from-green-900 dark:to-emerald-800 rounded-full">
+                                      <Users className="h-4 w-4 text-green-600 dark:text-green-400" />
+                                    </div>
+                                    <div>
+                                      <div className="font-medium text-gray-900 dark:text-gray-100">
+                                        {appointment.patient?.name || 'Unknown Patient'}
+                                      </div>
+                                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                                        ID: {appointment.patient?.id?.slice(0, 8)}...
+                                      </div>
+                                    </div>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="space-y-1">
+                                    <div className="font-medium text-gray-900 dark:text-gray-100">
+                                      {formatDate(appointment.scheduledAt)}
+                                    </div>
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                                      {appointmentDate.toLocaleTimeString('en-US', {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                        hour12: true
+                                      })}
+                                    </div>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="space-y-1">
+                                    <div className="text-sm text-gray-900 dark:text-gray-100">
+                                      {appointment.patient?.email || 'No email'}
+                                    </div>
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                                      {appointment.patient?.phone || 'No phone'}
+                                    </div>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <div className={`text-sm font-medium ${getTimeColor()}`}>
+                                    {getTimeUntil()}
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                    <CheckCircle className="h-3 w-3 mr-1" />
+                                    Confirmed
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex items-center justify-center space-x-2">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => setIsAddReportModalOpen(true)}
+                                      className="border-purple-300 text-purple-600 hover:bg-purple-50 dark:border-purple-600 dark:text-purple-400 dark:hover:bg-purple-950/20 px-3 py-1 h-8 text-xs font-medium rounded-md transition-all duration-200 hover:scale-105 hover:shadow-md"
+                                    >
+                                      <FileText className="h-3 w-3 mr-1" />
+                                      Add Report
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleAppointmentAction(appointment.id, 'CANCELLED')}
+                                      className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-600 dark:text-red-400 dark:hover:bg-red-950/20 px-3 py-1 h-8 text-xs font-medium rounded-md transition-all duration-200 hover:scale-105 hover:shadow-md"
+                                    >
+                                      <X className="h-3 w-3 mr-1" />
+                                      Cancel
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            )
+                          })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )
+              })()}
+            </CardContent>
+          </Card>
+        )}
+
         {session.user.role === 'PATIENT' && (
           <Card className="border-0 shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg">
             <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
