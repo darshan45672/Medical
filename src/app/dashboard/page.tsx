@@ -13,6 +13,7 @@ import { BookAppointmentModal } from '@/components/ui/book-appointment-modal'
 import { AppointmentStatusBadge } from '@/components/ui/appointment-status-badge'
 import { ClaimDetailsModal } from '@/components/ui/claim-details-modal'
 import { NewClaimModal } from '@/components/ui/new-claim-modal'
+import { AddReportModal } from '@/components/ui/add-report-modal'
 import { Carousel } from '@/components/ui/carousel'
 import { Header } from '@/components/layout/header'
 import { useClaims, useClaim } from '@/hooks/use-claims'
@@ -43,6 +44,7 @@ export default function DashboardPage() {
   const { data: allAppointmentsData, isLoading: isLoadingAllAppointments } = useAppointments()
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false)
   const [isNewClaimModalOpen, setIsNewClaimModalOpen] = useState(false)
+  const [isAddReportModalOpen, setIsAddReportModalOpen] = useState(false)
   const [isAppointmentHistoryOpen, setIsAppointmentHistoryOpen] = useState(false)
   const [isClaimHistoryOpen, setIsClaimHistoryOpen] = useState(false)
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null)
@@ -301,18 +303,227 @@ export default function DashboardPage() {
                   </Button>
                 </Link>
                 
-                <Link href="/reports/new">
-                  <Button className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Add Reports
-                  </Button>
-                </Link>
+                <Button 
+                  onClick={() => setIsAddReportModalOpen(true)}
+                  className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Add Reports
+                </Button>
               </>
             )}
           </div>
         </div>
 
-        {/* Recent Claims - Only for Patients */}
+        {/* Today's Appointments - Only for Doctors */}
+        {session.user.role === 'DOCTOR' && (
+          <Card className="border-0 shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg mb-8 sm:mb-12">
+            <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
+              <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Today's Appointments</CardTitle>
+              <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+                Your scheduled appointments for today that are not yet completed
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0 sm:p-6">
+              {isLoadingAppointments ? (
+                <div className="flex justify-center py-8 sm:py-12">
+                  <LoadingSpinner />
+                </div>
+              ) : appointments.filter((appointment: any) => {
+                const today = new Date().toDateString()
+                const appointmentDate = new Date(appointment.scheduledAt).toDateString()
+                return appointmentDate === today && appointment.status !== 'COMPLETED'
+              }).length === 0 ? (
+                <div className="text-center py-8 sm:py-12 px-4">
+                  <div className="bg-gradient-to-r from-blue-100 to-indigo-200 dark:from-blue-900 dark:to-indigo-800 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                    <CalendarCheck className="h-8 w-8 sm:h-10 sm:w-10 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">No appointments today</h3>
+                  <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4 sm:mb-6 max-w-md mx-auto">
+                    You have no pending appointments scheduled for today.
+                  </p>
+                  <Link href="/appointments">
+                    <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                      <CalendarCheck className="h-4 w-4 mr-2" />
+                      View All Appointments
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="px-4 sm:px-6">
+                  <Carousel>
+                    {appointments.filter((appointment: any) => {
+                      const today = new Date().toDateString()
+                      const appointmentDate = new Date(appointment.scheduledAt).toDateString()
+                      return appointmentDate === today && appointment.status !== 'COMPLETED'
+                    }).map((appointment: any) => (
+                      <Card key={appointment.id} className="border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-lg transition-all duration-300 hover:scale-[1.02] h-full">
+                        <CardContent className="p-4 h-full flex flex-col">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm truncate">
+                                {appointment.patient?.name || 'Unknown Patient'}
+                              </h4>
+                              <p className="text-gray-600 dark:text-gray-400 text-xs mt-1">
+                                {new Date(appointment.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                              <p className="text-gray-500 dark:text-gray-500 text-xs">
+                                {appointment.patient?.email || 'No email'}
+                              </p>
+                            </div>
+                            <AppointmentStatusBadge status={appointment.status} />
+                          </div>
+                          
+                          <div className="space-y-2 flex-1">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-gray-500 dark:text-gray-400">Patient ID:</span>
+                              <span className="font-medium text-gray-900 dark:text-gray-100 text-sm font-mono">
+                                {appointment.patient?.id?.slice(-8) || 'N/A'}
+                              </span>
+                            </div>
+                            {appointment.notes && (
+                              <div>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">Notes:</span>
+                                <p className="text-gray-700 dark:text-gray-300 text-sm mt-1 line-clamp-2 bg-gray-50 dark:bg-slate-700 rounded p-2">
+                                  {appointment.notes}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="mt-4 pt-3 border-t border-gray-200 dark:border-slate-700 space-y-2">
+                            <Link href={`/appointments/${appointment.id}`} className="w-full">
+                              <Button variant="ghost" size="sm" className="w-full hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                                View Details
+                              </Button>
+                            </Link>
+                            {appointment.status !== 'COMPLETED' && (
+                              <Button 
+                                size="sm" 
+                                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                              >
+                                Mark as Completed
+                              </Button>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </Carousel>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Recent Patients - Only for Doctors */}
+        {session.user.role === 'DOCTOR' && (
+          <Card className="border-0 shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg mb-8 sm:mb-12">
+            <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
+              <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Patients</CardTitle>
+              <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+                Patients you've seen recently who may need follow-up
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0 sm:p-6">
+              {isLoadingAppointments ? (
+                <div className="flex justify-center py-8 sm:py-12">
+                  <LoadingSpinner />
+                </div>
+              ) : appointments.filter((appointment: any) => {
+                const threeDaysAgo = new Date()
+                threeDaysAgo.setDate(threeDaysAgo.getDate() - 3)
+                const appointmentDate = new Date(appointment.scheduledAt)
+                return appointmentDate >= threeDaysAgo && appointment.status === 'COMPLETED'
+              }).length === 0 ? (
+                <div className="text-center py-8 sm:py-12 px-4">
+                  <div className="bg-gradient-to-r from-green-100 to-emerald-200 dark:from-green-900 dark:to-emerald-800 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                    <Users className="h-8 w-8 sm:h-10 sm:w-10 text-green-600 dark:text-green-400" />
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">No recent patients</h3>
+                  <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4 sm:mb-6 max-w-md mx-auto">
+                    No patients have completed appointments in the last 3 days.
+                  </p>
+                  <Link href="/patients">
+                    <Button className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                      <Users className="h-4 w-4 mr-2" />
+                      View All Patients
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="px-4 sm:px-6">
+                  <Carousel>
+                    {appointments.filter((appointment: any) => {
+                      const threeDaysAgo = new Date()
+                      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3)
+                      const appointmentDate = new Date(appointment.scheduledAt)
+                      return appointmentDate >= threeDaysAgo && appointment.status === 'COMPLETED'
+                    }).map((appointment: any) => (
+                      <Card key={appointment.id} className="border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-lg transition-all duration-300 hover:scale-[1.02] h-full">
+                        <CardContent className="p-4 h-full flex flex-col">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm truncate">
+                                {appointment.patient?.name || 'Unknown Patient'}
+                              </h4>
+                              <p className="text-gray-600 dark:text-gray-400 text-xs mt-1">
+                                Last visit: {formatDate(appointment.scheduledAt)}
+                              </p>
+                              <p className="text-gray-500 dark:text-gray-500 text-xs">
+                                {appointment.patient?.email || 'No email'}
+                              </p>
+                            </div>
+                            <div className="flex flex-col items-end">
+                              <Badge variant="secondary" className="mb-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                Completed
+                              </Badge>
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                {new Date(appointment.scheduledAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-2 flex-1">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-gray-500 dark:text-gray-400">Patient ID:</span>
+                              <span className="font-medium text-gray-900 dark:text-gray-100 text-sm font-mono">
+                                {appointment.patient?.id?.slice(-8) || 'N/A'}
+                              </span>
+                            </div>
+                            {appointment.notes && (
+                              <div>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">Treatment Notes:</span>
+                                <p className="text-gray-700 dark:text-gray-300 text-sm mt-1 line-clamp-2 bg-gray-50 dark:bg-slate-700 rounded p-2">
+                                  {appointment.notes}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="mt-4 pt-3 border-t border-gray-200 dark:border-slate-700 space-y-2">
+                            <Link href={`/patients/${appointment.patient?.id}`} className="w-full">
+                              <Button variant="ghost" size="sm" className="w-full hover:bg-green-50 dark:hover:bg-green-950/30 hover:text-green-600 dark:hover:text-green-400 transition-colors">
+                                View Patient Profile
+                              </Button>
+                            </Link>
+                            <Button 
+                              size="sm" 
+                              className="w-full bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white"
+                              onClick={() => setIsAddReportModalOpen(true)}
+                            >
+                              Add Follow-up Report
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </Carousel>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
         {session.user.role === 'PATIENT' && (
           <Card className="border-0 shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg">
             <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
@@ -851,6 +1062,12 @@ export default function DashboardPage() {
       <NewClaimModal
         open={isNewClaimModalOpen}
         onOpenChange={setIsNewClaimModalOpen}
+      />
+
+      {/* Add Report Modal */}
+      <AddReportModal
+        open={isAddReportModalOpen}
+        onOpenChange={setIsAddReportModalOpen}
       />
 
       {/* Claim Details Modal */}

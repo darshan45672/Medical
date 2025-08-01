@@ -26,11 +26,7 @@ enum ClaimStatus {
 enum DocumentType {
   MEDICAL_REPORT
   PRESCRIPTION
-  INVOICE
-  RECEIPT
-  IDENTITY_PROOF
-  INSURANCE_POLICY
-  BANK_STATEMENT
+  SCAN_REPORT
 }
 
 enum AppointmentStatus {
