@@ -31,7 +31,10 @@ import {
   Calendar,
   CalendarCheck,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Check,
+  X,
+  Ban
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -47,6 +50,7 @@ export default function DashboardPage() {
   const [isAddReportModalOpen, setIsAddReportModalOpen] = useState(false)
   const [isAppointmentHistoryOpen, setIsAppointmentHistoryOpen] = useState(false)
   const [isClaimHistoryOpen, setIsClaimHistoryOpen] = useState(false)
+  const [isAppointmentManagementOpen, setIsAppointmentManagementOpen] = useState(false)
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null)
   const [isClaimDetailsModalOpen, setIsClaimDetailsModalOpen] = useState(false)
   
@@ -132,6 +136,27 @@ export default function DashboardPage() {
         return 'Process approved claims for payment'
       default:
         return 'Welcome to the insurance claims portal'
+    }
+  }
+
+  const handleAppointmentAction = async (appointmentId: string, action: 'ACCEPTED' | 'REJECTED' | 'CANCELLED') => {
+    try {
+      const response = await fetch(`/api/appointments/${appointmentId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: action }),
+      })
+
+      if (response.ok) {
+        // Refresh appointments data
+        window.location.reload()
+      } else {
+        console.error('Failed to update appointment status')
+      }
+    } catch (error) {
+      console.error('Error updating appointment:', error)
     }
   }
 
@@ -237,6 +262,7 @@ export default function DashboardPage() {
                     setIsAppointmentHistoryOpen(!isAppointmentHistoryOpen)
                     if (!isAppointmentHistoryOpen) {
                       setIsClaimHistoryOpen(false)
+                      setIsAppointmentManagementOpen(false)
                     }
                   }}
                   variant="outline" 
@@ -259,6 +285,7 @@ export default function DashboardPage() {
                     setIsClaimHistoryOpen(!isClaimHistoryOpen)
                     if (!isClaimHistoryOpen) {
                       setIsAppointmentHistoryOpen(false)
+                      setIsAppointmentManagementOpen(false)
                     }
                   }}
                   variant="outline" 
@@ -309,6 +336,29 @@ export default function DashboardPage() {
                 >
                   <FileText className="h-4 w-4 mr-2" />
                   Add Reports
+                </Button>
+                
+                <Button 
+                  onClick={() => {
+                    setIsAppointmentManagementOpen(!isAppointmentManagementOpen)
+                    if (!isAppointmentManagementOpen) {
+                      setIsAppointmentHistoryOpen(false)
+                      setIsClaimHistoryOpen(false)
+                    }
+                  }}
+                  variant="outline" 
+                  className="w-full sm:w-auto border-amber-300 dark:border-amber-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-amber-50 dark:hover:bg-amber-950/20 hover:border-amber-400 dark:hover:border-amber-500 transition-all duration-300 hover:scale-[1.02]"
+                  disabled={isLoadingAllAppointments}
+                >
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Manage Appointments
+                  {isLoadingAllAppointments ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-amber-600 ml-2"></div>
+                  ) : isAppointmentManagementOpen ? (
+                    <ChevronUp className="h-4 w-4 ml-2" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 ml-2" />
+                  )}
                 </Button>
               </>
             )}
@@ -524,6 +574,144 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         )}
+
+        {/* Appointment Management - Only for Doctors */}
+        {session.user.role === 'DOCTOR' && isAppointmentManagementOpen && (
+          <Card className="border-0 shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg mb-8 sm:mb-12">
+            <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
+              <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                Appointment Management
+              </CardTitle>
+              <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+                Manage your future appointments - Accept, Reject, or Cancel
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0 sm:p-6">
+              {isLoadingAllAppointments ? (
+                <div className="flex justify-center py-8 sm:py-12">
+                  <LoadingSpinner />
+                </div>
+              ) : (() => {
+                // Filter future appointments for the doctor
+                const futureAppointments = allAppointmentsData?.appointments?.filter((appointment: any) => 
+                  appointment.doctorId === session?.user?.id && 
+                  new Date(appointment.scheduledAt) > new Date() &&
+                  appointment.status === 'PENDING'
+                ) || []
+
+                return futureAppointments.length === 0 ? (
+                  <div className="text-center py-8 sm:py-12 px-4">
+                    <div className="bg-gradient-to-r from-amber-100 to-orange-200 dark:from-amber-900 dark:to-orange-800 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                      <Calendar className="h-8 w-8 sm:h-10 sm:w-10 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">
+                      No pending appointments
+                    </h3>
+                    <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+                      All your future appointments have been processed or you have no upcoming appointment requests.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/50 dark:to-orange-950/50 border-amber-200 dark:border-amber-800">
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Patient</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Date & Time</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Contact</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100">Status</TableHead>
+                          <TableHead className="font-semibold text-gray-900 dark:text-gray-100 text-center">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {futureAppointments.map((appointment: any) => (
+                          <TableRow 
+                            key={appointment.id}
+                            className="hover:bg-gradient-to-r hover:from-amber-50/50 hover:to-orange-50/50 dark:hover:from-amber-950/20 dark:hover:to-orange-950/20 transition-all duration-200 border-gray-200 dark:border-slate-700"
+                          >
+                            <TableCell>
+                              <div className="flex items-center space-x-3">
+                                <div className="p-2 bg-gradient-to-r from-blue-100 to-indigo-200 dark:from-blue-900 dark:to-indigo-800 rounded-full">
+                                  <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                </div>
+                                <div>
+                                  <div className="font-medium text-gray-900 dark:text-gray-100">
+                                    {appointment.patient?.name || 'Unknown Patient'}
+                                  </div>
+                                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                                    ID: {appointment.patient?.id?.slice(0, 8)}...
+                                  </div>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="space-y-1">
+                                <div className="font-medium text-gray-900 dark:text-gray-100">
+                                  {formatDate(appointment.scheduledAt)}
+                                </div>
+                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                  {new Date(appointment.scheduledAt).toLocaleTimeString('en-US', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    hour12: true
+                                  })}
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="space-y-1">
+                                <div className="text-sm text-gray-900 dark:text-gray-100">
+                                  {appointment.patient?.email || 'No email'}
+                                </div>
+                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                  {appointment.patient?.phone || 'No phone'}
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <AppointmentStatusBadge status={appointment.status} />
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center justify-center space-x-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleAppointmentAction(appointment.id, 'ACCEPTED')}
+                                  className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 h-8 text-xs font-medium rounded-md transition-all duration-200 hover:scale-105 hover:shadow-md"
+                                >
+                                  <Check className="h-3 w-3 mr-1" />
+                                  Accept
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => handleAppointmentAction(appointment.id, 'REJECTED')}
+                                  className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 h-8 text-xs font-medium rounded-md transition-all duration-200 hover:scale-105 hover:shadow-md"
+                                >
+                                  <X className="h-3 w-3 mr-1" />
+                                  Reject
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleAppointmentAction(appointment.id, 'CANCELLED')}
+                                  className="border-orange-300 text-orange-600 hover:bg-orange-50 dark:border-orange-600 dark:text-orange-400 dark:hover:bg-orange-950/20 px-3 py-1 h-8 text-xs font-medium rounded-md transition-all duration-200 hover:scale-105 hover:shadow-md"
+                                >
+                                  <Ban className="h-3 w-3 mr-1" />
+                                  Cancel
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )
+              })()}
+            </CardContent>
+          </Card>
+        )}
+
         {session.user.role === 'PATIENT' && (
           <Card className="border-0 shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg">
             <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
