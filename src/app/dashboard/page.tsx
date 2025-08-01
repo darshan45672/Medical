@@ -10,8 +10,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { StatusBadge } from '@/components/ui/status-badge'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { BookAppointmentModal } from '@/components/ui/book-appointment-modal'
+import { AppointmentStatusBadge } from '@/components/ui/appointment-status-badge'
+import { Carousel } from '@/components/ui/carousel'
 import { Header } from '@/components/layout/header'
 import { useClaims } from '@/hooks/use-claims'
+import { useAppointments } from '@/hooks/use-appointments'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { 
   FileText, 
@@ -31,6 +34,7 @@ export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const { data: claimsData, isLoading } = useClaims({ limit: 10 })
+  const { data: appointmentsData, isLoading: isLoadingAppointments } = useAppointments({ limit: 10 })
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false)
 
   useEffect(() => {
@@ -55,6 +59,7 @@ export default function DashboardPage() {
   }
 
   const claims = claimsData?.claims || []
+  const appointments = appointmentsData?.appointments || []
 
   // Calculate stats based on user role
   const getStats = () => {
@@ -268,41 +273,129 @@ export default function DashboardPage() {
                   </Link>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="border-gray-200 dark:border-slate-700">
-                        <TableHead className="text-gray-700 dark:text-gray-300 font-semibold">Claim Number</TableHead>
-                        <TableHead className="text-gray-700 dark:text-gray-300 font-semibold">Diagnosis</TableHead>
-                        <TableHead className="text-gray-700 dark:text-gray-300 font-semibold">Amount</TableHead>
-                        <TableHead className="text-gray-700 dark:text-gray-300 font-semibold">Status</TableHead>
-                        <TableHead className="text-gray-700 dark:text-gray-300 font-semibold">Date</TableHead>
-                        <TableHead className="text-gray-700 dark:text-gray-300 font-semibold">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {claims.map((claim: any) => (
-                        <TableRow key={claim.id} className="border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
-                          <TableCell className="font-medium text-gray-900 dark:text-gray-100">
-                            {claim.claimNumber}
-                          </TableCell>
-                          <TableCell className="text-gray-700 dark:text-gray-300">{claim.diagnosis}</TableCell>
-                          <TableCell className="font-semibold text-gray-900 dark:text-gray-100">{formatCurrency(claim.claimAmount)}</TableCell>
-                          <TableCell>
+                <div className="px-4 sm:px-6">
+                  <Carousel>
+                    {claims.map((claim: any) => (
+                      <Card key={claim.id} className="border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-lg transition-all duration-300 hover:scale-[1.02] h-full">
+                        <CardContent className="p-4 h-full flex flex-col">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm truncate">
+                                {claim.claimNumber}
+                              </h4>
+                              <p className="text-gray-600 dark:text-gray-400 text-xs mt-1 line-clamp-2">
+                                {claim.diagnosis}
+                              </p>
+                            </div>
                             <StatusBadge status={claim.status} />
-                          </TableCell>
-                          <TableCell className="text-gray-600 dark:text-gray-400">{formatDate(claim.createdAt)}</TableCell>
-                          <TableCell>
-                            <Link href={`/claims/${claim.id}`}>
-                              <Button variant="ghost" size="sm" className="hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                                View
+                          </div>
+                          
+                          <div className="space-y-2 flex-1">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-gray-500 dark:text-gray-400">Amount:</span>
+                              <span className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                                {formatCurrency(claim.claimAmount)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-gray-500 dark:text-gray-400">Date:</span>
+                              <span className="text-gray-600 dark:text-gray-400 text-xs">
+                                {formatDate(claim.createdAt)}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="mt-4 pt-3 border-t border-gray-200 dark:border-slate-700">
+                            <Link href={`/claims/${claim.id}`} className="w-full">
+                              <Button variant="ghost" size="sm" className="w-full hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                                View Details
                               </Button>
                             </Link>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </Carousel>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Recent Appointments - Only for Patients */}
+        {session.user.role === 'PATIENT' && (
+          <Card className="border-0 shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg mt-8 sm:mt-12">
+            <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
+              <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Appointments</CardTitle>
+              <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+                Your upcoming and recent appointments
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0 sm:p-6">
+              {isLoadingAppointments ? (
+                <div className="flex justify-center py-8 sm:py-12">
+                  <LoadingSpinner />
+                </div>
+              ) : appointments.length === 0 ? (
+                <div className="text-center py-8 sm:py-12 px-4">
+                  <div className="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                    <Calendar className="h-8 w-8 sm:h-10 sm:w-10 text-gray-400 dark:text-gray-500" />
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">No appointments found</h3>
+                  <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4 sm:mb-6 max-w-md mx-auto">
+                    You haven't booked any appointments yet. Schedule your first appointment with a doctor.
+                  </p>
+                  <Button 
+                    onClick={() => setIsAppointmentModalOpen(true)}
+                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+                  >
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Book Your First Appointment
+                  </Button>
+                </div>
+              ) : (
+                <div className="px-4 sm:px-6">
+                  <Carousel>
+                    {appointments.map((appointment: any) => (
+                      <Card key={appointment.id} className="border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-lg transition-all duration-300 hover:scale-[1.02] h-full">
+                        <CardContent className="p-4 h-full flex flex-col">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm truncate">
+                                Dr. {appointment.doctor?.name || 'Unknown Doctor'}
+                              </h4>
+                              <p className="text-gray-600 dark:text-gray-400 text-xs mt-1">
+                                {new Date(appointment.scheduledAt).toLocaleDateString()}
+                              </p>
+                              <p className="text-gray-500 dark:text-gray-500 text-xs">
+                                {new Date(appointment.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                            </div>
+                            <AppointmentStatusBadge status={appointment.status} />
+                          </div>
+                          
+                          <div className="flex-1">
+                            {appointment.notes && (
+                              <div className="mb-3">
+                                <span className="text-xs text-gray-500 dark:text-gray-400">Notes:</span>
+                                <p className="text-gray-700 dark:text-gray-300 text-sm mt-1 line-clamp-2">
+                                  {appointment.notes}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="mt-4 pt-3 border-t border-gray-200 dark:border-slate-700">
+                            <Link href={`/appointments/${appointment.id}`} className="w-full">
+                              <Button variant="ghost" size="sm" className="w-full hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                                View Details
+                              </Button>
+                            </Link>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </Carousel>
                 </div>
               )}
             </CardContent>
