@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
+import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -107,19 +108,49 @@ export function AddReportModal({ open, onOpenChange }: AddReportModalProps) {
 
     setIsUploading(true)
     try {
-      // TODO: Implement file upload logic here
-      console.log('Uploading files for patient:', selectedPatientId)
-      console.log('Files:', uploadFiles)
+      // Find the selected patient's appointment ID
+      const selectedPatient = patients.find((p: any) => p.id === selectedPatientId)
       
-      // Simulate upload delay
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      if (!selectedPatient?.appointmentId) {
+        throw new Error('Appointment ID not found for selected patient')
+      }
+
+      // Create FormData for file upload
+      const formData = new FormData()
       
-      // Reset form and close modal
-      setSelectedPatientId('')
-      setUploadFiles([])
-      onOpenChange(false)
+      // Add appointment and patient IDs
+      formData.append('appointmentId', selectedPatient.appointmentId)
+      formData.append('patientId', selectedPatientId)
+      
+      // Add files with their types
+      uploadFiles.forEach((uploadFile, index) => {
+        formData.append('files', uploadFile.file)
+        formData.append(`type_${index}`, uploadFile.type)
+      })
+
+      // Upload to server
+      const response = await fetch('/api/documents', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const result = await response.json()
+
+      if (response.ok) {
+        // Success - show success message and close modal
+        toast.success(`Successfully uploaded ${result.documents.length} document(s)!`)
+        
+        // Reset form and close modal
+        setSelectedPatientId('')
+        setUploadFiles([])
+        onOpenChange(false)
+      } else {
+        // Error from server
+        throw new Error(result.error || 'Upload failed')
+      }
     } catch (error) {
       console.error('Upload failed:', error)
+      toast.error(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsUploading(false)
     }
