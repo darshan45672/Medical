@@ -102,6 +102,7 @@ export default function ClaimDetailPage({ params }: ClaimPageProps) {
   const router = useRouter()
   const [claim, setClaim] = useState<ClaimDetail | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'overview' | 'documents' | 'reports' | 'payments'>('overview')
   const [downloadingItem, setDownloadingItem] = useState<string | null>(null)
   const [claimId, setClaimId] = useState<string | null>(null)
@@ -131,16 +132,34 @@ export default function ClaimDetailPage({ params }: ClaimPageProps) {
 
     try {
       setLoading(true)
+      setError(null)
+      console.log('Fetching claim details for ID:', claimId)
       const response = await fetch(`/api/claims/${claimId}`)
+      console.log('Response status:', response.status)
+      
       if (response.ok) {
         const data = await response.json()
-        setClaim(data.claim)
+        console.log('Received claim data:', data)
+        setClaim(data) // API returns claim directly, not wrapped in data.claim
       } else {
-        console.error('Failed to fetch claim details')
-        toast.error('Failed to fetch claim details')
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('API Error:', errorData)
+        
+        if (response.status === 404) {
+          setError('Claim not found')
+          toast.error('Claim not found')
+        } else if (response.status === 403) {
+          setError('You do not have permission to view this claim')
+          toast.error('You do not have permission to view this claim')
+        } else {
+          setError('Failed to fetch claim details')
+          toast.error('Failed to fetch claim details')
+        }
+        console.error('Failed to fetch claim details, status:', response.status)
       }
     } catch (error) {
       console.error('Error fetching claim details:', error)
+      setError('Error fetching claim details')
       toast.error('Error fetching claim details')
     } finally {
       setLoading(false)
@@ -291,7 +310,7 @@ export default function ClaimDetailPage({ params }: ClaimPageProps) {
     return null
   }
 
-  if (!claim) {
+  if (!claim || error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950">
         <main className="max-w-7xl mx-auto py-6 sm:py-8 lg:py-12 px-4 sm:px-6 lg:px-8">
@@ -300,10 +319,20 @@ export default function ClaimDetailPage({ params }: ClaimPageProps) {
               <div className="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <FileText className="h-8 w-8 text-gray-400 dark:text-gray-500" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Claim not found</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                {error || 'Claim not found'}
+              </h3>
               <p className="text-gray-500 dark:text-gray-400 mb-6">
-                The claim you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view it.
+                {error 
+                  ? 'Please check the URL and try again, or go back to your claims list.'
+                  : "The claim you're looking for doesn't exist or you don't have permission to view it."
+                }
               </p>
+              {claimId && (
+                <p className="text-xs text-gray-400 dark:text-gray-500 mb-6 font-mono">
+                  Claim ID: {claimId}
+                </p>
+              )}
               <Link href="/claims">
                 <Button variant="outline" className="cursor-pointer">
                   <ArrowLeft className="h-4 w-4 mr-2" />

@@ -133,32 +133,42 @@ export function NewClaimModal({ open, onOpenChange }: NewClaimModalProps) {
       return
     }
 
-    if (!selectedReport) {
-      toast.error('Please select a report for your claim')
-      return
-    }
-
     setIsSubmitting(true)
 
     try {
+      // Determine if all details are complete
+      const hasAllRequiredDetails = formData.doctorId && formData.diagnosis && formData.treatmentDate && formData.claimAmount
+      const hasReport = !!selectedReport
+      
       const claimData = {
         doctorId: formData.doctorId,
         diagnosis: formData.diagnosis,
         treatmentDate: formData.treatmentDate,
         claimAmount: parseFloat(formData.claimAmount),
-        description: formData.description
+        description: formData.description,
+        hasReport: hasReport
       }
 
       // Create the claim first
       const createdClaim = await createClaimMutation.mutateAsync(claimData)
       
-      // Attach selected report to the claim
-      await attachReportMutation.mutateAsync({
-        claimId: createdClaim.id,
-        reportId: selectedReport
-      })
+      // Attach selected report to the claim if provided
+      if (selectedReport) {
+        await attachReportMutation.mutateAsync({
+          claimId: createdClaim.id,
+          reportId: selectedReport
+        })
+      }
       
-      toast.success('Claim created successfully with report attached')
+      // Show appropriate success message based on status
+      if (hasAllRequiredDetails && hasReport) {
+        toast.success('Claim submitted successfully! Your claim has been sent for review.')
+      } else if (!hasReport) {
+        toast.success('Claim saved as draft. Please attach a medical report to submit for review.')
+      } else {
+        toast.success('Claim saved as draft. Please complete all required details.')
+      }
+      
       onOpenChange(false)
       
       // Reset form
@@ -223,12 +233,22 @@ export function NewClaimModal({ open, onOpenChange }: NewClaimModalProps) {
                 <AlertTriangle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                 <div>
                   <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">
-                    Important Information
+                    Claim Status Information
                   </h4>
-                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                  <p className="text-sm text-blue-700 dark:text-blue-300 mb-2">
                     You can only create claims for appointments that have been completed. 
                     Select the doctor who diagnosed you and the specific appointment for which you want to claim.
                   </p>
+                  <div className="mt-3 space-y-2 text-xs text-blue-600 dark:text-blue-300">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-3 w-3" />
+                      <span><strong>SUBMITTED:</strong> Claims with all details and medical report attached</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-3 w-3" />
+                      <span><strong>DRAFT:</strong> Claims without medical report (can be completed later)</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -372,7 +392,7 @@ export function NewClaimModal({ open, onOpenChange }: NewClaimModalProps) {
                       <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-md">
                         <FileCheck className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                       </div>
-                      Select Reports for Claim *
+                      Select Medical Report (Optional)
                     </Label>
                     
                     {reportsLoading ? (
@@ -386,10 +406,10 @@ export function NewClaimModal({ open, onOpenChange }: NewClaimModalProps) {
                           <div className="space-y-3">
                             <p className="text-xs text-gray-500 dark:text-gray-400">
                               {reportsData.reports.length === 1 
-                                ? 'Your report has been automatically selected'
+                                ? 'Your report has been automatically selected. Claims with reports will be submitted for review.'
                                 : selectedReport
-                                  ? 'Report selected for this claim'
-                                  : 'Select a report to attach to this claim'
+                                  ? 'Report selected - your claim will be submitted for review.'
+                                  : 'Select a report to submit your claim for review, or save without a report as draft.'
                               }
                             </p>
                             
@@ -457,7 +477,7 @@ export function NewClaimModal({ open, onOpenChange }: NewClaimModalProps) {
                               <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
                                 <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
                                 <span className="text-sm text-green-700 dark:text-green-300">
-                                  Report selected for this claim
+                                  Report selected - claim will be submitted for review
                                 </span>
                               </div>
                             )}
@@ -465,20 +485,15 @@ export function NewClaimModal({ open, onOpenChange }: NewClaimModalProps) {
                         ) : (
                           <div className="text-center py-8 px-4 border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-lg">
                             <FileText className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-3" />
-                            <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">No Reports Available</h3>
+                            <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">No Medical Reports Available</h3>
                             <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-                              You need to have at least one medical report to create a claim. 
-                              Please visit a doctor to get a medical report first.
+                              You can create a claim without a medical report, but it will be saved as a draft. 
+                              To submit your claim for review, you'll need to add a medical report later.
                             </p>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => onOpenChange(false)}
-                              className="text-xs"
-                            >
-                              Book Appointment
-                            </Button>
+                            <div className="flex items-center justify-center gap-2 text-xs text-amber-600 dark:text-amber-400">
+                              <AlertTriangle className="h-4 w-4" />
+                              <span>Claims without reports are saved as drafts</span>
+                            </div>
                           </div>
                         )}
                       </>
@@ -514,29 +529,48 @@ export function NewClaimModal({ open, onOpenChange }: NewClaimModalProps) {
               Cancel
             </Button>
             
-            {completedAppointments.length > 0 && reportsData?.reports && reportsData.reports.length > 0 && (
-              <Button
-                type="submit"
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isSubmitting || createClaimMutation.isPending || !selectedReport}
-              >
-                {isSubmitting || createClaimMutation.isPending ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    {isSubmitting ? 'Attaching Report...' : 'Creating...'}
-                  </>
-                ) : (
-                  <>
-                    <FileText className="h-4 w-4 mr-2" />
-                    Create Claim with Report
-                  </>
-                )}
-              </Button>
+            {completedAppointments.length > 0 && (
+              <div className="flex gap-3">
+                {/* Save as Draft Button - always available when appointments exist */}
+                <Button
+                  type="submit"
+                  variant="outline"
+                  className="border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isSubmitting || createClaimMutation.isPending}
+                >
+                  {isSubmitting || createClaimMutation.isPending ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2"></div>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="h-4 w-4 mr-2" />
+                      {selectedReport ? 'Submit Claim' : 'Save as Draft'}
+                    </>
+                  )}
+                </Button>
+                
+                {/* Info text about status */}
+                <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                  {selectedReport ? (
+                    <div className="flex items-center gap-1">
+                      <CheckCircle className="h-3 w-3 text-green-600" />
+                      <span>Will be submitted for review</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1">
+                      <AlertTriangle className="h-3 w-3 text-amber-600" />
+                      <span>Will be saved as draft without report</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
             
-            {completedAppointments.length > 0 && (!reportsData?.reports || reportsData.reports.length === 0) && (
+            {completedAppointments.length === 0 && (
               <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-                Cannot create claim without medical reports
+                Cannot create claim without completed appointments
               </div>
             )}
           </div>

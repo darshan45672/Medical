@@ -89,11 +89,17 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { diagnosis, treatmentDate, claimAmount, description, doctorId } = body
+    const { diagnosis, treatmentDate, claimAmount, description, doctorId, hasReport } = body
 
     if (!diagnosis || !treatmentDate || !claimAmount) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
+
+    // Determine status based on completeness
+    // DRAFT: Missing medical report or incomplete details
+    // SUBMITTED: All required details provided including medical report
+    const isComplete = diagnosis && treatmentDate && claimAmount && doctorId && hasReport
+    const status = isComplete ? 'SUBMITTED' : 'DRAFT'
 
     const claim = await prisma.claim.create({
       data: {
@@ -104,7 +110,7 @@ export async function POST(request: NextRequest) {
         treatmentDate: new Date(treatmentDate),
         claimAmount,
         description,
-        status: 'DRAFT',
+        status,
       },
       include: {
         patient: {
