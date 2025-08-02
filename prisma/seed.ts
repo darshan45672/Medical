@@ -131,6 +131,47 @@ async function main() {
     },
   })
 
+  // Create additional appointments with different statuses for better demonstration
+  const appointment5 = await prisma.appointment.create({
+    data: {
+      patientId: patient3.id,
+      doctorId: doctor.id,
+      scheduledAt: new Date('2024-12-20T14:30:00'),
+      status: 'PENDING',
+      notes: 'Requested appointment for annual physical exam',
+    },
+  })
+
+  const appointment6 = await prisma.appointment.create({
+    data: {
+      patientId: patient.id,
+      doctorId: doctor.id,
+      scheduledAt: new Date('2024-12-22T11:15:00'),
+      status: 'ACCEPTED',
+      notes: 'Follow-up appointment for blood test results',
+    },
+  })
+
+  const appointment7 = await prisma.appointment.create({
+    data: {
+      patientId: patient2.id,
+      doctorId: doctor.id,
+      scheduledAt: new Date('2024-12-18T10:00:00'),
+      status: 'CONSULTED',
+      notes: 'Patient consulted for blood pressure monitoring. Prescribed medication.',
+    },
+  })
+
+  const appointment8 = await prisma.appointment.create({
+    data: {
+      patientId: patient3.id,
+      doctorId: doctor.id,
+      scheduledAt: new Date('2024-12-10T15:45:00'),
+      status: 'REJECTED',
+      notes: 'Appointment request rejected due to scheduling conflict',
+    },
+  })
+
   // Create patient reports for the appointments
   const report1 = await prisma.patientReport.create({
     data: {
@@ -218,7 +259,7 @@ async function main() {
   // Create a claim by the patient for this report
   const claim = await prisma.claim.create({
     data: {
-      claimNumber: 'CLM-005-DEMO-PATIENTS',
+      claimNumber: 'CLM-006-DEMO-APPOINTMENTS',
       patientId: patient.id,
       doctorId: doctor.id,
       diagnosis: 'General Health Check',
