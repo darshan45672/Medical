@@ -193,3 +193,62 @@ export async function DELETE(
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
+
+export async function PATCH(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await context.params
+    const session = await getServerSession(authOptions)
+    
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Only insurance users can update claim status
+    if (session.user.role !== 'INSURANCE') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const body = await request.json()
+    const { status } = body
+
+    // Validate status
+    const validStatuses = ['SUBMITTED', 'UNDER_REVIEW', 'APPROVED', 'REJECTED']
+    if (!status || !validStatuses.includes(status)) {
+      return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
+    }
+
+    // Check if claim exists
+    const existingClaim = await prisma.claim.findUnique({
+      where: { id },
+    })
+
+    if (!existingClaim) {
+      return NextResponse.json({ error: 'Claim not found' }, { status: 404 })
+    }
+
+    // Update claim status
+    const updatedClaim = await prisma.claim.update({
+      where: { id },
+      data: { 
+        status,
+        updatedAt: new Date()
+      },
+      include: {
+        patient: {
+          select: { id: true, name: true, email: true }
+        }
+      }
+    })
+
+    return NextResponse.json({ 
+      message: 'Claim status updated successfully',
+      claim: updatedClaim
+    })
+  } catch (error) {
+    console.error('Error updating claim status:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}

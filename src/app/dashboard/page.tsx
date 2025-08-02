@@ -20,6 +20,7 @@ import { useClaims, useClaim } from '@/hooks/use-claims'
 import { useAppointments, useUpdateAppointment } from '@/hooks/use-appointments'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query'
 import { 
   FileText, 
   Plus, 
@@ -34,7 +35,9 @@ import {
   ChevronUp,
   Check,
   X,
-  Ban
+  Ban,
+  Settings,
+  Eye
 } from 'lucide-react'
 import Link from 'next/link'
 import { Claim, AppointmentStatus, ClaimStatus, UserRole } from '@/types'
@@ -42,6 +45,7 @@ import { Claim, AppointmentStatus, ClaimStatus, UserRole } from '@/types'
 export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const queryClient = useQueryClient()
   const { data: claimsData, isLoading } = useClaims({ limit: 10 })
   const { data: allClaimsData, isLoading: isLoadingAllClaims } = useClaims()
   const { data: appointmentsData, isLoading: isLoadingAppointments } = useAppointments({ limit: 10 })
@@ -53,6 +57,7 @@ export default function DashboardPage() {
   const [isAppointmentManagementOpen, setIsAppointmentManagementOpen] = useState(false)
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null)
   const [isClaimDetailsModalOpen, setIsClaimDetailsModalOpen] = useState(false)
+  const [updatingClaimId, setUpdatingClaimId] = useState<string | null>(null)
   
   const { data: selectedClaimData } = useClaim(selectedClaimId || '')
 
@@ -110,6 +115,33 @@ export default function DashboardPage() {
     setSelectedClaimId(null)
   }
 
+  const handleStatusChange = async (claimId: string, newStatus: string) => {
+    setUpdatingClaimId(claimId)
+    try {
+      const response = await fetch(`/api/claims/${claimId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update claim status')
+      }
+
+      // Invalidate and refetch claims data
+      queryClient.invalidateQueries({ queryKey: ['claims'] })
+      
+      toast.success(`Claim status updated to ${newStatus.replace('_', ' ').toLowerCase()}`)
+    } catch (error) {
+      console.error('Error updating claim status:', error)
+      toast.error('Failed to update claim status')
+    } finally {
+      setUpdatingClaimId(null)
+    }
+  }
+
   // Calculate stats based on user role
   const getStats = () => {
     if (session.user.role === UserRole.DOCTOR) {
@@ -146,10 +178,11 @@ export default function DashboardPage() {
         uniquePatients,
       }
     } else if (session.user.role === UserRole.PATIENT) {
-      // Patient-specific stats
-      const totalClaims = claims.length
-      const approvedClaims = claims.filter((c: Claim) => c.status === ClaimStatus.APPROVED || c.status === ClaimStatus.PAID).length
-      const pendingClaims = claims.filter((c: Claim) => c.status === ClaimStatus.SUBMITTED || c.status === ClaimStatus.UNDER_REVIEW).length
+      // Patient-specific stats - exclude draft claims from statistics
+      const submittedClaims = claims.filter((c: Claim) => c.status !== ClaimStatus.DRAFT)
+      const totalClaims = submittedClaims.length
+      const approvedClaims = submittedClaims.filter((c: Claim) => c.status === ClaimStatus.APPROVED || c.status === ClaimStatus.PAID).length
+      const pendingClaims = submittedClaims.filter((c: Claim) => c.status === ClaimStatus.SUBMITTED || c.status === ClaimStatus.UNDER_REVIEW).length
       const totalAppointments = appointments.length
       
       // Calculate upcoming appointments (future appointments)
@@ -162,9 +195,9 @@ export default function DashboardPage() {
                 appointment.status === AppointmentStatus.ACCEPTED)
       }).length
       
-      // Calculate total amount claimed and approved
-      const totalAmountClaimed = claims.reduce((sum: number, claim: Claim) => sum + parseFloat(claim.claimAmount), 0)
-      const totalAmountApproved = claims
+      // Calculate total amount claimed and approved - only for submitted claims
+      const totalAmountClaimed = submittedClaims.reduce((sum: number, claim: Claim) => sum + parseFloat(claim.claimAmount), 0)
+      const totalAmountApproved = submittedClaims
         .filter((c: Claim) => c.status === ClaimStatus.APPROVED || c.status === ClaimStatus.PAID)
         .reduce((sum: number, claim: Claim) => sum + (parseFloat(claim.approvedAmount || '0') || parseFloat(claim.claimAmount)), 0)
 
@@ -178,12 +211,13 @@ export default function DashboardPage() {
         totalAmountApproved,
       }
     } else {
-      // Insurance/Bank stats (original logic)
-      const totalClaims = claims.length
-      const approvedClaims = claims.filter((c: Claim) => c.status === ClaimStatus.APPROVED || c.status === ClaimStatus.PAID).length
-      const pendingClaims = claims.filter((c: Claim) => c.status === ClaimStatus.SUBMITTED || c.status === ClaimStatus.UNDER_REVIEW).length
-      const rejectedClaims = claims.filter((c: Claim) => c.status === ClaimStatus.REJECTED).length
-      const totalAmount = claims.reduce((sum: number, claim: Claim) => sum + parseFloat(claim.claimAmount), 0)
+      // Insurance/Bank stats - exclude draft claims
+      const submittedClaims = claims.filter((c: Claim) => c.status !== ClaimStatus.DRAFT)
+      const totalClaims = submittedClaims.length
+      const approvedClaims = submittedClaims.filter((c: Claim) => c.status === ClaimStatus.APPROVED || c.status === ClaimStatus.PAID).length
+      const pendingClaims = submittedClaims.filter((c: Claim) => c.status === ClaimStatus.SUBMITTED || c.status === ClaimStatus.UNDER_REVIEW).length
+      const rejectedClaims = submittedClaims.filter((c: Claim) => c.status === ClaimStatus.REJECTED).length
+      const totalAmount = submittedClaims.reduce((sum: number, claim: Claim) => sum + parseFloat(claim.claimAmount), 0)
 
       return {
         totalClaims,
@@ -233,7 +267,7 @@ export default function DashboardPage() {
       case UserRole.DOCTOR:
         return 'Review and process patient claims'
       case UserRole.INSURANCE:
-        return 'Review and approve insurance claims'
+        return 'Review, approve, and manage insurance claims from patients'
       case UserRole.BANK:
         return 'Process approved claims for payment'
       default:
@@ -495,12 +529,51 @@ export default function DashboardPage() {
             )}
 
             {(session.user.role === UserRole.INSURANCE || session.user.role === UserRole.BANK) && (
-              <Link href="/users">
-                <Button variant="outline" className="w-full sm:w-auto border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-300 hover:scale-[1.02] cursor-pointer">
-                  <Users className="h-4 w-4 mr-2" />
-                  Manage Users
-                </Button>
-              </Link>
+              <>
+                <Link href="/users">
+                  <Button variant="outline" className="w-full sm:w-auto border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-300 hover:scale-[1.02] cursor-pointer">
+                    <Users className="h-4 w-4 mr-2" />
+                    Manage Users
+                  </Button>
+                </Link>
+                
+                {session.user.role === UserRole.INSURANCE && (
+                  <>
+                    <Link href="/claims">
+                      <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer">
+                        <FileText className="h-4 w-4 mr-2" />
+                        See Claims
+                      </Button>
+                    </Link>
+                    
+                    <Button 
+                      onClick={() => router.push('/insurance/claim-requests')}
+                      className="w-full sm:w-auto bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer"
+                    >
+                      <Clock className="h-4 w-4 mr-2" />
+                      Users Requested for Claim
+                    </Button>
+                    
+                    <Button 
+                      onClick={() => router.push('/insurance/pending-claims')}
+                      variant="outline" 
+                      className="w-full sm:w-auto border-yellow-300 dark:border-yellow-600 bg-white dark:bg-slate-800 hover:bg-yellow-50 dark:hover:bg-yellow-950/20 hover:border-yellow-400 dark:hover:border-yellow-500 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Review Pending Claims
+                    </Button>
+                    
+                    <Button 
+                      onClick={() => router.push('/insurance/approved-claims')}
+                      variant="outline" 
+                      className="w-full sm:w-auto border-green-300 dark:border-green-600 bg-white dark:bg-slate-800 hover:bg-green-50 dark:hover:bg-green-950/20 hover:border-green-400 dark:hover:border-green-500 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Approved Claims
+                    </Button>
+                  </>
+                )}
+              </>
             )}
 
             {session.user.role === UserRole.DOCTOR && (
@@ -552,6 +625,505 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
+
+        {/* Insurance Dashboard Sections */}
+        {session.user.role === UserRole.INSURANCE && (
+          <>
+            {/* Today's Claims */}
+            <Card className="border-0 shadow-2xl bg-white dark:bg-slate-800 mb-8 sm:mb-12">
+              <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
+                <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Today's Claims</CardTitle>
+                <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+                  Claims submitted by patients today that need your attention
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0 sm:p-6">
+                {isLoading ? (
+                  <div className="flex justify-center py-8 sm:py-12">
+                    <LoadingSpinner />
+                  </div>
+                ) : (() => {
+                  const today = new Date()
+                  today.setHours(0, 0, 0, 0)
+                  const tomorrow = new Date(today)
+                  tomorrow.setDate(tomorrow.getDate() + 1)
+                  
+                  const todaysClaims = claims.filter((claim: any) => {
+                    const claimDate = new Date(claim.createdAt)
+                    return claimDate >= today && claimDate < tomorrow && claim.status !== 'DRAFT'
+                  })
+                  
+                  return todaysClaims.length === 0 ? (
+                    <div className="text-center py-8 sm:py-12 px-4">
+                      <div className="bg-gradient-to-r from-blue-100 to-blue-200 dark:from-blue-700 dark:to-blue-600 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                        <FileText className="h-8 w-8 sm:h-10 sm:w-10 text-blue-600 dark:text-blue-300" />
+                      </div>
+                      <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">No claims today</h3>
+                      <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4 sm:mb-6 max-w-md mx-auto">
+                        No new claims were submitted today. Check back later or review pending claims.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4 px-4 sm:px-6">
+                      {todaysClaims.map((claim: any) => (
+                        <Card key={claim.id} className="border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-lg transition-all duration-300">
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-4">
+                                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                                  <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                </div>
+                                <div>
+                                  <h4 className="font-medium text-gray-900 dark:text-gray-100 font-mono text-sm">
+                                    {claim.claimNumber}
+                                  </h4>
+                                  <p className="text-sm text-gray-900 dark:text-gray-100 font-medium">
+                                    {claim.diagnosis}
+                                  </p>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    Patient: {claim.patient?.name || 'Unknown Patient'}
+                                  </p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    Amount: {formatCurrency(parseFloat(claim.claimAmount))}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <StatusBadge status={claim.status} />
+                                <Button 
+                                  size="sm"
+                                  onClick={() => handleViewClaimDetails(claim.id)}
+                                  variant="outline"
+                                  className="border-blue-300 text-blue-600 hover:bg-blue-50 dark:border-blue-600 dark:text-blue-400 dark:hover:bg-blue-950/20"
+                                >
+                                  <FileText className="h-4 w-4 mr-1" />
+                                  Review
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )
+                })()}
+              </CardContent>
+            </Card>
+
+            {/* Claim Status Management */}
+            <Card className="border-0 shadow-2xl bg-white dark:bg-slate-800 mb-8 sm:mb-12">
+              <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
+                <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Claim Status Management</CardTitle>
+                <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+                  Review and update claim statuses for submitted claims
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0 sm:p-6">
+                {isLoading ? (
+                  <div className="flex justify-center py-8 sm:py-12">
+                    <LoadingSpinner />
+                  </div>
+                ) : (() => {
+                  const submittedClaims = claims.filter((claim: any) => 
+                    claim.status === 'SUBMITTED' || claim.status === 'UNDER_REVIEW'
+                  )
+                  
+                  return submittedClaims.length === 0 ? (
+                    <div className="text-center py-8 sm:py-12 px-4">
+                      <div className="bg-gradient-to-r from-amber-100 to-amber-200 dark:from-amber-700 dark:to-amber-600 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                        <Settings className="h-8 w-8 sm:h-10 sm:w-10 text-amber-600 dark:text-amber-300" />
+                      </div>
+                      <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">No claims pending review</h3>
+                      <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4 sm:mb-6 max-w-md mx-auto">
+                        All submitted claims have been processed. New claims will appear here for status management.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-6 px-4 sm:px-6">
+                      {submittedClaims.map((claim: any) => (
+                        <Card key={claim.id} className="border border-gray-200 dark:border-slate-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 hover:shadow-lg transition-all duration-300">
+                          <CardContent className="p-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                              {/* Claim Information */}
+                              <div className="lg:col-span-2 space-y-4">
+                                <div className="flex items-start justify-between">
+                                  <div className="space-y-2">
+                                    <div className="flex items-center space-x-3">
+                                      <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                                        <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                      </div>
+                                      <div>
+                                        <h4 className="font-bold text-gray-900 dark:text-gray-100 font-mono text-lg">
+                                          {claim.claimNumber}
+                                        </h4>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                                          Submitted {formatDate(claim.createdAt)}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Current Status:</span>
+                                      <StatusBadge status={claim.status} />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div className="space-y-2">
+                                    <div className="flex justify-between">
+                                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Patient:</span>
+                                      <span className="text-sm text-gray-900 dark:text-gray-100 font-medium">
+                                        {claim.patient?.name || 'Unknown'}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Email:</span>
+                                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                                        {claim.patient?.email || 'N/A'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div className="space-y-2">
+                                    <div className="flex justify-between">
+                                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Amount:</span>
+                                      <span className="text-sm text-gray-900 dark:text-gray-100 font-bold">
+                                        {formatCurrency(parseFloat(claim.claimAmount))}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Diagnosis:</span>
+                                      <span className="text-sm text-gray-600 dark:text-gray-400 max-w-40 truncate">
+                                        {claim.diagnosis}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {claim.notes && (
+                                  <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-3">
+                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Notes:</span>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{claim.notes}</p>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Status Management */}
+                              <div className="space-y-4">
+                                <h5 className="font-semibold text-gray-900 dark:text-gray-100 text-center">Update Status</h5>
+                                
+                                <div className="space-y-3">
+                                  <Button 
+                                    onClick={() => handleStatusChange(claim.id, 'UNDER_REVIEW')}
+                                    disabled={updatingClaimId === claim.id || claim.status === 'UNDER_REVIEW'}
+                                    className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    {updatingClaimId === claim.id ? (
+                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                    ) : (
+                                      <Clock className="h-4 w-4 mr-2" />
+                                    )}
+                                    Under Review
+                                  </Button>
+
+                                  <Button 
+                                    onClick={() => handleStatusChange(claim.id, 'APPROVED')}
+                                    disabled={updatingClaimId === claim.id || claim.status === 'APPROVED'}
+                                    className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    {updatingClaimId === claim.id ? (
+                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                    ) : (
+                                      <CheckCircle className="h-4 w-4 mr-2" />
+                                    )}
+                                    Approve
+                                  </Button>
+
+                                  <Button 
+                                    onClick={() => handleStatusChange(claim.id, 'REJECTED')}
+                                    disabled={updatingClaimId === claim.id || claim.status === 'REJECTED'}
+                                    variant="outline"
+                                    className="w-full border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 hover:border-red-400 dark:hover:border-red-500 transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    {updatingClaimId === claim.id ? (
+                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-2"></div>
+                                    ) : (
+                                      <X className="h-4 w-4 mr-2" />
+                                    )}
+                                    Reject
+                                  </Button>
+                                </div>
+
+                                <div className="pt-3 border-t border-gray-200 dark:border-slate-600">
+                                  <Button 
+                                    onClick={() => handleViewClaimDetails(claim.id)}
+                                    variant="ghost"
+                                    className="w-full hover:bg-gray-100 dark:hover:bg-slate-700 transition-all duration-300"
+                                  >
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    View Full Details
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )
+                })()}
+              </CardContent>
+            </Card>
+
+            {/* All Submitted Claims */}
+            <Card className="border-0 shadow-2xl bg-white dark:bg-slate-800 mb-8 sm:mb-12">
+              <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
+                <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">All Submitted Claims</CardTitle>
+                <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+                  Complete list of claims submitted by patients for review and processing
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0 sm:p-6">
+                {isLoading ? (
+                  <div className="flex justify-center py-8 sm:py-12">
+                    <LoadingSpinner />
+                  </div>
+                ) : claims.length === 0 ? (
+                  <div className="text-center py-8 sm:py-12 px-4">
+                    <div className="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                      <FileText className="h-8 w-8 sm:h-10 sm:w-10 text-gray-400 dark:text-gray-500" />
+                    </div>
+                    <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">No claims found</h3>
+                    <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4 sm:mb-6 max-w-md mx-auto">
+                      No claims have been submitted yet. Claims will appear here as patients submit them.
+                    </p>
+                  </div>
+                ) : (() => {
+                  const submittedClaims = claims.filter((claim: any) => claim.status !== 'DRAFT')
+                  
+                  return submittedClaims.length === 0 ? (
+                    <div className="text-center py-8 sm:py-12 px-4">
+                      <div className="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                        <FileText className="h-8 w-8 sm:h-10 sm:w-10 text-gray-400 dark:text-gray-500" />
+                      </div>
+                      <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">No submitted claims found</h3>
+                      <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4 sm:mb-6 max-w-md mx-auto">
+                        No claims have been submitted yet. Only submitted claims (not drafts) will appear here.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="overflow-hidden">
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Claim Number</TableHead>
+                              <TableHead>Patient</TableHead>
+                              <TableHead>Diagnosis</TableHead>
+                              <TableHead>Amount</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead>Submitted</TableHead>
+                              <TableHead>Action</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {submittedClaims.map((claim: any) => (
+                            <TableRow key={claim.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/50">
+                              <TableCell className="font-mono text-sm">{claim.claimNumber}</TableCell>
+                              <TableCell className="font-medium">{claim.patient?.name || 'Unknown'}</TableCell>
+                              <TableCell className="max-w-xs truncate">{claim.diagnosis}</TableCell>
+                              <TableCell>{formatCurrency(parseFloat(claim.claimAmount))}</TableCell>
+                              <TableCell>
+                                <StatusBadge status={claim.status} />
+                              </TableCell>
+                              <TableCell className="text-sm text-gray-600 dark:text-gray-400">
+                                {formatDate(claim.createdAt)}
+                              </TableCell>
+                              <TableCell>
+                                <Button 
+                                  size="sm"
+                                  onClick={() => handleViewClaimDetails(claim.id)}
+                                  variant="ghost"
+                                  className="hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400"
+                                >
+                                  View Details
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                  )
+                })()}
+              </CardContent>
+            </Card>
+
+            {/* Claim Status Management */}
+            <Card className="border-0 shadow-2xl bg-white dark:bg-slate-800 mb-8 sm:mb-12">
+              <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
+                <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Claim Status Management</CardTitle>
+                <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+                  Review and update claim statuses for submitted claims
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0 sm:p-6">
+                {isLoading ? (
+                  <div className="flex justify-center py-8 sm:py-12">
+                    <LoadingSpinner />
+                  </div>
+                ) : (() => {
+                  const submittedClaims = claims.filter((claim: any) => 
+                    claim.status === 'SUBMITTED' || claim.status === 'UNDER_REVIEW'
+                  )
+                  
+                  return submittedClaims.length === 0 ? (
+                    <div className="text-center py-8 sm:py-12 px-4">
+                      <div className="bg-gradient-to-r from-amber-100 to-amber-200 dark:from-amber-700 dark:to-amber-600 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                        <Settings className="h-8 w-8 sm:h-10 sm:w-10 text-amber-600 dark:text-amber-300" />
+                      </div>
+                      <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">No claims pending review</h3>
+                      <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4 sm:mb-6 max-w-md mx-auto">
+                        All submitted claims have been processed. New claims will appear here for status management.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-6 px-4 sm:px-6">
+                      {submittedClaims.map((claim: any) => (
+                        <Card key={claim.id} className="border border-gray-200 dark:border-slate-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 hover:shadow-lg transition-all duration-300">
+                          <CardContent className="p-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                              {/* Claim Information */}
+                              <div className="lg:col-span-2 space-y-4">
+                                <div className="flex items-start justify-between">
+                                  <div className="space-y-2">
+                                    <div className="flex items-center space-x-3">
+                                      <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                                        <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                      </div>
+                                      <div>
+                                        <h4 className="font-bold text-gray-900 dark:text-gray-100 font-mono text-lg">
+                                          {claim.claimNumber}
+                                        </h4>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                                          Submitted {formatDate(claim.createdAt)}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Current Status:</span>
+                                      <StatusBadge status={claim.status} />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div className="space-y-2">
+                                    <div className="flex justify-between">
+                                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Patient:</span>
+                                      <span className="text-sm text-gray-900 dark:text-gray-100 font-medium">
+                                        {claim.patient?.name || 'Unknown'}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Email:</span>
+                                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                                        {claim.patient?.email || 'N/A'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div className="space-y-2">
+                                    <div className="flex justify-between">
+                                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Amount:</span>
+                                      <span className="text-sm text-gray-900 dark:text-gray-100 font-bold">
+                                        {formatCurrency(parseFloat(claim.claimAmount))}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Diagnosis:</span>
+                                      <span className="text-sm text-gray-600 dark:text-gray-400 max-w-40 truncate">
+                                        {claim.diagnosis}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {claim.notes && (
+                                  <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-3">
+                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Notes:</span>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{claim.notes}</p>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Status Management */}
+                              <div className="space-y-4">
+                                <h5 className="font-semibold text-gray-900 dark:text-gray-100 text-center">Update Status</h5>
+                                
+                                <div className="space-y-3">
+                                  <Button 
+                                    onClick={() => handleStatusChange(claim.id, 'UNDER_REVIEW')}
+                                    disabled={updatingClaimId === claim.id || claim.status === 'UNDER_REVIEW'}
+                                    className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    {updatingClaimId === claim.id ? (
+                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                    ) : (
+                                      <Clock className="h-4 w-4 mr-2" />
+                                    )}
+                                    Under Review
+                                  </Button>
+
+                                  <Button 
+                                    onClick={() => handleStatusChange(claim.id, 'APPROVED')}
+                                    disabled={updatingClaimId === claim.id || claim.status === 'APPROVED'}
+                                    className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    {updatingClaimId === claim.id ? (
+                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                    ) : (
+                                      <CheckCircle className="h-4 w-4 mr-2" />
+                                    )}
+                                    Approve
+                                  </Button>
+
+                                  <Button 
+                                    onClick={() => handleStatusChange(claim.id, 'REJECTED')}
+                                    disabled={updatingClaimId === claim.id || claim.status === 'REJECTED'}
+                                    variant="outline"
+                                    className="w-full border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 hover:border-red-400 dark:hover:border-red-500 transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    {updatingClaimId === claim.id ? (
+                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 mr-2"></div>
+                                    ) : (
+                                      <X className="h-4 w-4 mr-2" />
+                                    )}
+                                    Reject
+                                  </Button>
+                                </div>
+
+                                <div className="pt-3 border-t border-gray-200 dark:border-slate-600">
+                                  <Button 
+                                    onClick={() => handleViewClaimDetails(claim.id)}
+                                    variant="ghost"
+                                    className="w-full hover:bg-gray-100 dark:hover:bg-slate-700 transition-all duration-300"
+                                  >
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    View Full Details
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )
+                })()}
+              </CardContent>
+            </Card>
+          </>
+        )}
 
         {/* Doctor Dashboard Sections */}
         {session.user.role === UserRole.DOCTOR && (
