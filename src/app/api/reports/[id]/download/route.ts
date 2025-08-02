@@ -15,19 +15,37 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (session.user.role !== UserRole.DOCTOR) {
-      return NextResponse.json({ error: 'Access denied. Only doctors can download reports.' }, { status: 403 })
-    }
-
     const { id: reportId } = await params
 
-    // Fetch the report and verify doctor has access
-    const report = await prisma.patientReport.findFirst({
-      where: {
-        id: reportId,
-        doctorId: session.user.id
-      }
-    })
+    let report
+
+    // Allow both doctors and patients to download reports
+    if (session.user.role === UserRole.DOCTOR) {
+      // Fetch the report and verify doctor has access
+      report = await prisma.patientReport.findFirst({
+        where: {
+          id: reportId,
+          doctorId: session.user.id
+        }
+      })
+    } else if (session.user.role === UserRole.PATIENT) {
+      // Fetch the report and verify patient has access through appointments
+      report = await prisma.patientReport.findFirst({
+        where: {
+          id: reportId,
+          appointment: {
+            patientId: session.user.id
+          }
+        },
+        include: {
+          appointment: {
+            select: { patientId: true }
+          }
+        }
+      })
+    } else {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 })
+    }
 
     if (!report) {
       return NextResponse.json({ 

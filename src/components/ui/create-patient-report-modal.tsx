@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { useSession } from 'next-auth/react'
+import { useQueryClient } from '@tanstack/react-query'
 import Image from 'next/image'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -102,13 +103,14 @@ export function CreatePatientReportModal({
   onClose
 }: CreatePatientReportModalProps) {
   const { data: session } = useSession()
+  const queryClient = useQueryClient()
   const createReport = useCreatePatientReport()
   const fileInputRef = useRef<HTMLInputElement>(null)
   
-  // Fetch consulted appointments for the doctor
+  // Fetch accepted appointments for the doctor (ready for reports)
   const { data: appointmentsData, isLoading: appointmentsLoading } = useAppointments({
     doctorId: session?.user?.id,
-    status: AppointmentStatus.CONSULTED,
+    status: AppointmentStatus.ACCEPTED,
     limit: 50
   })
   
@@ -259,9 +261,12 @@ export function CreatePatientReportModal({
         documentUrl: uploadedUrls.length > 0 ? uploadedUrls[0] : undefined, // Store first uploaded file URL
       })
 
-      toast.success('Patient report created successfully')
+      // Invalidate appointments cache to reflect the status change
+      queryClient.invalidateQueries({ queryKey: ['appointments'] })
+
+      toast.success('Patient report created successfully! Appointment marked as completed.')
       
-      console.log('🎉 Report created successfully')
+      console.log('🎉 Report created successfully and appointment marked as completed')
       
       // Reset form
       setFormData({
@@ -332,7 +337,7 @@ export function CreatePatientReportModal({
                   </Label>
                   <Select value={selectedAppointmentId} onValueChange={setSelectedAppointmentId}>
                     <SelectTrigger className="mt-3 h-12 border-gray-300 dark:border-slate-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors text-gray-900 dark:text-gray-100">
-                      <SelectValue placeholder="🔍 Choose a consulted appointment" />
+                      <SelectValue placeholder="🔍 Choose an accepted appointment" />
                     </SelectTrigger>
                     <SelectContent className="max-h-60 border-gray-300 dark:border-slate-600 shadow-xl bg-white dark:bg-slate-800">
                       {appointmentsData?.appointments.map((appointment: Appointment) => (
@@ -456,17 +461,26 @@ export function CreatePatientReportModal({
                       />
                     </div>
                     
-                    <div>
-                      <Label htmlFor="followUpDate" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                        Follow-up Date
+                    <div className="space-y-3">
+                      <Label htmlFor="followUpDate" className="text-sm font-semibold flex items-center gap-2 text-gray-800 dark:text-gray-200">
+                        <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-md">
+                          <Calendar className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                        </div>
+                        Follow-up Date & Time
                       </Label>
-                      <Input
-                        id="followUpDate"
-                        type="datetime-local"
-                        value={formData.followUpDate}
-                        onChange={(e) => handleChange('followUpDate', e.target.value)}
-                        className="h-11 border-gray-300 dark:border-slate-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors text-gray-900 dark:text-gray-100"
-                      />
+                      <div className="relative">
+                        <Input
+                          id="followUpDate"
+                          type="datetime-local"
+                          value={formData.followUpDate}
+                          onChange={(e) => handleChange('followUpDate', e.target.value)}
+                          min={new Date().toISOString().slice(0, 16)} // Can't be in the past
+                          className="h-12 pl-4 pr-4 border-2 border-gray-300 dark:border-slate-600 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-800 hover:border-purple-400 dark:hover:border-purple-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-slate-800 rounded-lg shadow-sm font-medium"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Optional: Schedule a follow-up appointment if needed
+                      </p>
                     </div>
                   </div>
 
