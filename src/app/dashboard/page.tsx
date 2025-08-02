@@ -145,8 +145,40 @@ export default function DashboardPage() {
         completedAppointments,
         uniquePatients,
       }
+    } else if (session.user.role === UserRole.PATIENT) {
+      // Patient-specific stats
+      const totalClaims = claims.length
+      const approvedClaims = claims.filter((c: Claim) => c.status === ClaimStatus.APPROVED || c.status === ClaimStatus.PAID).length
+      const pendingClaims = claims.filter((c: Claim) => c.status === ClaimStatus.SUBMITTED || c.status === ClaimStatus.UNDER_REVIEW).length
+      const totalAppointments = appointments.length
+      
+      // Calculate upcoming appointments (future appointments)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const upcomingAppointments = appointments.filter((appointment: any) => {
+        const appointmentDate = new Date(appointment.scheduledAt)
+        return appointmentDate >= today && 
+               (appointment.status === AppointmentStatus.PENDING || 
+                appointment.status === AppointmentStatus.ACCEPTED)
+      }).length
+      
+      // Calculate total amount claimed and approved
+      const totalAmountClaimed = claims.reduce((sum: number, claim: Claim) => sum + parseFloat(claim.claimAmount), 0)
+      const totalAmountApproved = claims
+        .filter((c: Claim) => c.status === ClaimStatus.APPROVED || c.status === ClaimStatus.PAID)
+        .reduce((sum: number, claim: Claim) => sum + (parseFloat(claim.approvedAmount || '0') || parseFloat(claim.claimAmount)), 0)
+
+      return {
+        totalClaims,
+        approvedClaims,
+        pendingClaims,
+        totalAppointments,
+        upcomingAppointments,
+        totalAmountClaimed,
+        totalAmountApproved,
+      }
     } else {
-      // Patient/Insurance/Bank stats (original logic)
+      // Insurance/Bank stats (original logic)
       const totalClaims = claims.length
       const approvedClaims = claims.filter((c: Claim) => c.status === ClaimStatus.APPROVED || c.status === ClaimStatus.PAID).length
       const pendingClaims = claims.filter((c: Claim) => c.status === ClaimStatus.SUBMITTED || c.status === ClaimStatus.UNDER_REVIEW).length
@@ -304,9 +336,64 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
             </>
+          ) : session.user.role === UserRole.PATIENT ? (
+            <>
+              {/* Patient Stats */}
+              <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                  <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Claims</CardTitle>
+                  <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                    <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{stats.totalClaims}</div>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">All time claims</p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                  <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Approved Claims</CardTitle>
+                  <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded-lg">
+                    <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400">{stats.approvedClaims}</div>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Successfully approved</p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                  <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Upcoming Appointments</CardTitle>
+                  <div className="p-2 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
+                    <Calendar className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl sm:text-3xl font-bold text-purple-600 dark:text-purple-400">{stats.upcomingAppointments}</div>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Scheduled visits</p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                  <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Amount Approved</CardTitle>
+                  <div className="p-2 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg">
+                    <DollarSign className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(stats.totalAmountApproved)}</div>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Total reimbursed</p>
+                </CardContent>
+              </Card>
+            </>
           ) : (
             <>
-              {/* Patient/Insurance/Bank Stats */}
+              {/* Insurance/Bank Stats */}
               <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
                   <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Claims</CardTitle>
