@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { FileText, User, Briefcase, Shield, DollarSign, Eye, EyeOff } from 'lucide-react'
-import { UserRole } from '@prisma/client'
+import { UserRole } from '@/types'
 import { useCreateUser } from '@/hooks/use-users'
 
 const roles = [

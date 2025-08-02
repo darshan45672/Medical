@@ -45,12 +45,17 @@ export async function GET(request: NextRequest) {
       where: whereClause,
       include: {
         patient: {
-          select: { id: true, name: true, email: true, phone: true }
+          select: { 
+            id: true, 
+            name: true, 
+            email: true, 
+            phone: true,
+            address: true
+          }
         },
         doctor: {
-          select: { id: true, name: true, email: true, phone: true }
-        },
-        documents: true,
+          select: { id: true, name: true, email: true }
+        }
       },
       orderBy: { scheduledAt: 'desc' },
       skip,

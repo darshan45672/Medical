@@ -19,12 +19,17 @@ export async function GET(
       where: { id },
       include: {
         patient: {
-          select: { id: true, name: true, email: true, phone: true }
+          select: { 
+            id: true, 
+            name: true, 
+            email: true, 
+            phone: true,
+            address: true
+          }
         },
         doctor: {
           select: { id: true, name: true, email: true, phone: true }
-        },
-        documents: true,
+        }
       },
     })
 
@@ -43,7 +48,42 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    return NextResponse.json(appointment)
+    // Fetch patient reports related to this patient
+    const reports = await prisma.patientReport.findMany({
+      where: {
+        patientId: appointment.patientId,
+        ...(session.user.role === 'DOCTOR' ? { doctorId: session.user.id } : {}),
+        ...(session.user.role === 'PATIENT' ? { patientId: session.user.id } : {}),
+        // Insurance and Bank users can see all reports for this patient
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        createdAt: true,
+        reportType: true,
+        documentUrl: true
+      },
+      orderBy: { createdAt: 'desc' }
+    })
+
+    // Transform reports to match the expected interface
+    const transformedReports = reports.map(report => ({
+      id: report.id,
+      title: report.title,
+      description: report.description,
+      createdAt: report.createdAt,
+      type: report.reportType,
+      fileName: report.documentUrl ? report.documentUrl.split('/').pop() : undefined,
+      fileUrl: report.documentUrl
+    }))
+
+    const appointmentWithReports = {
+      ...appointment,
+      reports: transformedReports
+    }
+
+    return NextResponse.json({ appointment: appointmentWithReports })
   } catch (error) {
     console.error('Error fetching appointment:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

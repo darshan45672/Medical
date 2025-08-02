@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui/badge'
-import { AppointmentStatus } from '@prisma/client'
+import { AppointmentStatus } from '@/types'
 
 interface AppointmentStatusBadgeProps {
   status: AppointmentStatus
