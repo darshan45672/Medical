@@ -61,19 +61,148 @@ async function main() {
     },
   })
 
+  // Create additional patients
+  const patient2 = await prisma.user.upsert({
+    where: { email: 'patient2@demo.com' },
+    update: {},
+    create: {
+      email: 'patient2@demo.com',
+      password: hashedPassword,
+      name: 'Mary Johnson',
+      role: 'PATIENT',
+      phone: '+1-555-0105',
+      address: '789 Elm St, City, State 12345',
+    },
+  })
+
+  const patient3 = await prisma.user.upsert({
+    where: { email: 'patient3@demo.com' },
+    update: {},
+    create: {
+      email: 'patient3@demo.com',
+      password: hashedPassword,
+      name: 'Robert Brown',
+      role: 'PATIENT',
+      phone: '+1-555-0106',
+      address: '321 Oak Ave, City, State 12345',
+    },
+  })
+
   // Create an appointment and mark it as accepted
   const appointment = await prisma.appointment.create({
     data: {
       patientId: patient.id,
       doctorId: doctor.id,
       scheduledAt: new Date('2024-01-10T10:00:00'),
-      status: 'ACCEPTED',
-      notes: 'General checkup appointment',
+      status: 'COMPLETED',
+      notes: 'General checkup appointment - Completed',
+    },
+  })
+
+  // Create more appointments for different patients
+  const appointment2 = await prisma.appointment.create({
+    data: {
+      patientId: patient2.id,
+      doctorId: doctor.id,
+      scheduledAt: new Date('2024-01-15T14:00:00'),
+      status: 'CONSULTED',
+      notes: 'Follow-up consultation for chronic condition',
+    },
+  })
+
+  const appointment3 = await prisma.appointment.create({
+    data: {
+      patientId: patient3.id,
+      doctorId: doctor.id,
+      scheduledAt: new Date('2024-01-20T11:00:00'),
+      status: 'COMPLETED',
+      notes: 'Annual physical examination',
+    },
+  })
+
+  // Create more recent appointments
+  const appointment4 = await prisma.appointment.create({
+    data: {
+      patientId: patient2.id,
+      doctorId: doctor.id,
+      scheduledAt: new Date('2024-07-15T09:00:00'),
+      status: 'COMPLETED',
+      notes: 'Recent check-up for medication adjustment',
+    },
+  })
+
+  // Create patient reports for the appointments
+  const report1 = await prisma.patientReport.create({
+    data: {
+      patientId: patient.id,
+      doctorId: doctor.id,
+      appointmentId: appointment.id,
+      reportType: 'DIAGNOSIS_REPORT',
+      title: 'General Health Assessment',
+      description: 'Comprehensive health check including vital signs, blood work, and physical examination.',
+      diagnosis: 'Overall good health with minor vitamin D deficiency',
+      treatment: 'Vitamin D supplements recommended',
+      medications: 'Vitamin D3 2000 IU daily',
+      recommendations: 'Continue healthy lifestyle, follow-up in 6 months',
+      followUpDate: new Date('2024-07-10'),
+      documentUrl: 'https://example.com/reports/general_health_john.pdf',
+    },
+  })
+
+  const report2 = await prisma.patientReport.create({
+    data: {
+      patientId: patient2.id,
+      doctorId: doctor.id,
+      appointmentId: appointment2.id,
+      reportType: 'TREATMENT_SUMMARY',
+      title: 'Diabetes Management Follow-up',
+      description: 'Regular follow-up for Type 2 diabetes management and medication adjustment.',
+      diagnosis: 'Type 2 Diabetes Mellitus - Well controlled',
+      treatment: 'Continue current medication regimen with dosage adjustment',
+      medications: 'Metformin 1000mg twice daily, Lisinopril 10mg daily',
+      recommendations: 'Continue low-carb diet, regular exercise, blood sugar monitoring',
+      followUpDate: new Date('2024-04-15'),
+      documentUrl: 'https://example.com/reports/diabetes_mary.pdf',
+    },
+  })
+
+  const report3 = await prisma.patientReport.create({
+    data: {
+      patientId: patient3.id,
+      doctorId: doctor.id,
+      appointmentId: appointment3.id,
+      reportType: 'LAB_REPORT',
+      title: 'Annual Physical Lab Results',
+      description: 'Complete metabolic panel, lipid profile, and CBC results from annual physical.',
+      diagnosis: 'Mild hyperlipidemia, otherwise normal',
+      treatment: 'Dietary modifications and lifestyle changes',
+      medications: 'None prescribed at this time',
+      recommendations: 'Low-cholesterol diet, increase physical activity, recheck in 3 months',
+      followUpDate: new Date('2024-04-20'),
+      documentUrl: 'https://example.com/reports/annual_physical_robert.pdf',
+    },
+  })
+
+  // Create additional report for recent appointment
+  const report4 = await prisma.patientReport.create({
+    data: {
+      patientId: patient2.id,
+      doctorId: doctor.id,
+      appointmentId: appointment4.id,
+      reportType: 'PRESCRIPTION_REPORT',
+      title: 'Medication Adjustment Report',
+      description: 'Review and adjustment of diabetes medications based on recent blood work.',
+      diagnosis: 'Type 2 Diabetes - Medication adjustment needed',
+      treatment: 'Increased Metformin dosage, added Glipizide',
+      medications: 'Metformin 1000mg twice daily, Glipizide 5mg daily, Lisinopril 10mg daily',
+      recommendations: 'Monitor blood glucose closely, follow-up in 2 months',
+      followUpDate: new Date('2024-09-15'),
+      documentUrl: 'https://example.com/reports/medication_adjustment_mary.pdf',
     },
   })
 
   // Doctor uploads a medical report for the appointment
-  const report = await prisma.document.create({
+  const document = await prisma.document.create({
     data: {
       type: 'MEDICAL_REPORT',
       filename: 'checkup_report_jan.pdf',
@@ -89,7 +218,7 @@ async function main() {
   // Create a claim by the patient for this report
   const claim = await prisma.claim.create({
     data: {
-      claimNumber: 'CLM-004-DEMO',
+      claimNumber: 'CLM-005-DEMO-PATIENTS',
       patientId: patient.id,
       doctorId: doctor.id,
       diagnosis: 'General Health Check',
@@ -101,7 +230,7 @@ async function main() {
       submittedAt: new Date('2024-01-11'),
       approvedAt: new Date('2024-01-13'),
       documents: {
-        connect: { id: report.id }, // Link the uploaded report to the claim
+        connect: { id: document.id }, // Link the uploaded report to the claim
       },
     },
   })
@@ -120,10 +249,20 @@ async function main() {
 
   console.log('\n✅ Database seeded successfully!')
   console.log('Demo users:')
-  console.log('🔹 Patient:    patient@demo.com / password123')
-  console.log('🔹 Doctor:     doctor@demo.com / password123')
+  console.log('🔹 Patient 1:  patient@demo.com / password123 (John Patient)')
+  console.log('🔹 Patient 2:  patient2@demo.com / password123 (Mary Johnson)')
+  console.log('🔹 Patient 3:  patient3@demo.com / password123 (Robert Brown)')
+  console.log('🔹 Doctor:     doctor@demo.com / password123 (Dr. Sarah Wilson)')
   console.log('🔹 Insurance:  insurance@demo.com / password123')
   console.log('🔹 Bank:       bank@demo.com / password123')
+  console.log('\n📋 Sample data includes:')
+  console.log('• 4 completed/consulted appointments')
+  console.log('• 4 patient reports with different types')
+  console.log('• 1 approved claim with payment')
+  console.log('\n🩺 To test the patient management system:')
+  console.log('1. Login as doctor@demo.com')
+  console.log('2. Go to "View My Patients" from dashboard')
+  console.log('3. Click on any patient to view detailed information')
 }
 
 main()
