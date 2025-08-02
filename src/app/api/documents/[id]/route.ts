@@ -41,8 +41,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     // Check if user has access to this document
-    const hasAccess = session.user.role === UserRole.ADMIN ||
-      document.claim.patientId === session.user.id ||
+    if (!document.claim) {
+      return NextResponse.json({ error: 'Document not associated with a claim' }, { status: 403 })
+    }
+
+    const hasAccess = document.claim.patientId === session.user.id ||
       document.claim.doctorId === session.user.id
 
     if (!hasAccess) {
