@@ -112,18 +112,54 @@ export default function DashboardPage() {
 
   // Calculate stats based on user role
   const getStats = () => {
-    const totalClaims = claims.length
-    const approvedClaims = claims.filter((c: Claim) => c.status === ClaimStatus.APPROVED || c.status === ClaimStatus.PAID).length
-    const pendingClaims = claims.filter((c: Claim) => c.status === ClaimStatus.SUBMITTED || c.status === ClaimStatus.UNDER_REVIEW).length
-    const rejectedClaims = claims.filter((c: Claim) => c.status === ClaimStatus.REJECTED).length
-    const totalAmount = claims.reduce((sum: number, claim: Claim) => sum + parseFloat(claim.claimAmount), 0)
+    if (session.user.role === UserRole.DOCTOR) {
+      // Doctor-specific stats
+      const totalAppointments = appointments.length
+      const today = new Date()
+      const todaysAppointments = appointments.filter((appointment: any) => {
+        const appointmentDate = new Date(appointment.scheduledAt)
+        return appointmentDate.toDateString() === today.toDateString()
+      }).length
+      
+      const pendingRequests = appointments.filter((appointment: any) => 
+        appointment.status === AppointmentStatus.PENDING
+      ).length
+      
+      const completedAppointments = appointments.filter((appointment: any) => 
+        appointment.status === AppointmentStatus.COMPLETED || appointment.status === AppointmentStatus.CONSULTED
+      ).length
+      
+      // Get unique patients count
+      const uniquePatients = appointments.reduce((unique: any[], appointment: any) => {
+        const existingPatient = unique.find(p => p.patient?.id === appointment.patient?.id)
+        if (!existingPatient && appointment.patient?.id) {
+          unique.push(appointment)
+        }
+        return unique
+      }, []).length
 
-    return {
-      totalClaims,
-      approvedClaims,
-      pendingClaims,
-      rejectedClaims,
-      totalAmount,
+      return {
+        totalAppointments,
+        todaysAppointments,
+        pendingRequests,
+        completedAppointments,
+        uniquePatients,
+      }
+    } else {
+      // Patient/Insurance/Bank stats (original logic)
+      const totalClaims = claims.length
+      const approvedClaims = claims.filter((c: Claim) => c.status === ClaimStatus.APPROVED || c.status === ClaimStatus.PAID).length
+      const pendingClaims = claims.filter((c: Claim) => c.status === ClaimStatus.SUBMITTED || c.status === ClaimStatus.UNDER_REVIEW).length
+      const rejectedClaims = claims.filter((c: Claim) => c.status === ClaimStatus.REJECTED).length
+      const totalAmount = claims.reduce((sum: number, claim: Claim) => sum + parseFloat(claim.claimAmount), 0)
+
+      return {
+        totalClaims,
+        approvedClaims,
+        pendingClaims,
+        rejectedClaims,
+        totalAmount,
+      }
     }
   }
 
@@ -213,57 +249,117 @@ export default function DashboardPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12">
-          <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
-              <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Claims</CardTitle>
-              <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
-                <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{stats.totalClaims}</div>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">All time claims</p>
-            </CardContent>
-          </Card>
+          {session.user.role === UserRole.DOCTOR ? (
+            <>
+              {/* Doctor Stats */}
+              <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                  <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Appointments</CardTitle>
+                  <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                    <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{stats.totalAppointments}</div>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">All time appointments</p>
+                </CardContent>
+              </Card>
 
-          <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
-              <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Approved</CardTitle>
-              <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded-lg">
-                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400">{stats.approvedClaims}</div>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Successfully processed</p>
-            </CardContent>
-          </Card>
+              <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                  <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Today's Schedule</CardTitle>
+                  <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded-lg">
+                    <CalendarCheck className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400">{stats.todaysAppointments}</div>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Appointments today</p>
+                </CardContent>
+              </Card>
 
-          <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
-              <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Pending</CardTitle>
-              <div className="p-2 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg">
-                <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl sm:text-3xl font-bold text-yellow-600 dark:text-yellow-400">{stats.pendingClaims}</div>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Under review</p>
-            </CardContent>
-          </Card>
+              <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                  <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Pending Requests</CardTitle>
+                  <div className="p-2 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg">
+                    <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl sm:text-3xl font-bold text-yellow-600 dark:text-yellow-400">{stats.pendingRequests}</div>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Awaiting approval</p>
+                </CardContent>
+              </Card>
 
-          <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
-              <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Amount</CardTitle>
-              <div className="p-2 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
-                <DollarSign className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(stats.totalAmount)}</div>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Total claim value</p>
-            </CardContent>
-          </Card>
+              <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                  <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Patients</CardTitle>
+                  <div className="p-2 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
+                    <Users className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{stats.uniquePatients}</div>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Unique patients</p>
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            <>
+              {/* Patient/Insurance/Bank Stats */}
+              <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                  <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Claims</CardTitle>
+                  <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                    <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{stats.totalClaims}</div>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">All time claims</p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                  <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Approved</CardTitle>
+                  <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded-lg">
+                    <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400">{stats.approvedClaims}</div>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Successfully processed</p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                  <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Pending</CardTitle>
+                  <div className="p-2 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg">
+                    <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl sm:text-3xl font-bold text-yellow-600 dark:text-yellow-400">{stats.pendingClaims}</div>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Under review</p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                  <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Amount</CardTitle>
+                  <div className="p-2 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
+                    <DollarSign className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(stats.totalAmount)}</div>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Total claim value</p>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </div>
 
         {/* Quick Actions */}
