@@ -539,7 +539,7 @@ export default function DashboardPage() {
                 
                 {session.user.role === UserRole.INSURANCE && (
                   <>
-                    <Link href="/claims">
+                    <Link href="/insurance/claims">
                       <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer">
                         <FileText className="h-4 w-4 mr-2" />
                         See Claims

@@ -122,7 +122,7 @@ export default function ClaimDetailPage({ params }: ClaimPageProps) {
   }, [params])
 
   useEffect(() => {
-    if (claimId && session?.user?.role === UserRole.PATIENT) {
+    if (claimId && session?.user && (session.user.role === UserRole.PATIENT || session.user.role === UserRole.INSURANCE || session.user.role === UserRole.BANK)) {
       fetchClaimDetails()
     }
   }, [claimId, session])
@@ -349,7 +349,7 @@ export default function ClaimDetailPage({ params }: ClaimPageProps) {
     )
   }
 
-  if (!session || session.user.role !== UserRole.PATIENT) {
+  if (!session || (session.user.role !== UserRole.PATIENT && session.user.role !== UserRole.INSURANCE && session.user.role !== UserRole.BANK)) {
     router.push('/dashboard')
     return null
   }
@@ -377,10 +377,10 @@ export default function ClaimDetailPage({ params }: ClaimPageProps) {
                   Claim ID: {claimId}
                 </p>
               )}
-              <Link href="/claims">
+              <Link href={session?.user?.role === UserRole.INSURANCE || session?.user?.role === UserRole.BANK ? "/insurance/claims" : "/claims"}>
                 <Button variant="outline" className="cursor-pointer">
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to My Claims
+                  {session?.user?.role === UserRole.INSURANCE || session?.user?.role === UserRole.BANK ? "Back to All Claims" : "Back to My Claims"}
                 </Button>
               </Link>
             </CardContent>
@@ -395,10 +395,10 @@ export default function ClaimDetailPage({ params }: ClaimPageProps) {
       <main className="max-w-7xl mx-auto py-6 sm:py-8 lg:py-12 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <Link href="/claims">
+          <Link href={session?.user?.role === UserRole.INSURANCE || session?.user?.role === UserRole.BANK ? "/insurance/claims" : "/claims"}>
             <Button variant="ghost" className="mb-4 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-950/20 rounded-xl px-4 py-2 transition-all duration-300 hover:scale-105 hover:shadow-md group">
               <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform duration-300" />
-              <span className="font-medium">Back to My Claims</span>
+              <span className="font-medium">{session?.user?.role === UserRole.INSURANCE || session?.user?.role === UserRole.BANK ? "Back to All Claims" : "Back to My Claims"}</span>
             </Button>
           </Link>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -407,7 +407,10 @@ export default function ClaimDetailPage({ params }: ClaimPageProps) {
                 Claim Details
               </h1>
               <p className="text-gray-600 dark:text-gray-300 mt-1">
-                View your claim information, documents, and reports
+                {session?.user?.role === UserRole.INSURANCE || session?.user?.role === UserRole.BANK 
+                  ? "Review claim information, documents, and reports for processing"
+                  : "View your claim information, documents, and reports"
+                }
               </p>
             </div>
             {getStatusBadge(claim.status)}
