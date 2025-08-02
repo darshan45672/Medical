@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ReportType } from '@prisma/client'
+import { ReportType } from '@/types'
 
 interface PatientReport {
   id: string

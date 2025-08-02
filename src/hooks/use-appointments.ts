@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { AppointmentStatus } from '@prisma/client'
+import { AppointmentStatus } from '@/types'
 
 interface AppointmentFilters {
   status?: AppointmentStatus

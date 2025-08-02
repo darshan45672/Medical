@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ClaimStatus } from '@prisma/client'
+import { ClaimStatus } from '@/types'
 
 interface ClaimFilters {
   status?: ClaimStatus

@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { useCreatePatientReport } from '@/hooks/use-patient-reports'
 import { useAppointments } from '@/hooks/use-appointments'
-import { ReportType, AppointmentStatus } from '@prisma/client'
+import { ReportType, AppointmentStatus } from '@/types'
 import { toast } from 'sonner'
 import { Calendar, FileText, User, Clock, Upload, X, FileImage, Stethoscope, ClipboardCheck, Plus, Eye } from 'lucide-react'
 

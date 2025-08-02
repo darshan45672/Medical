@@ -36,17 +36,7 @@ import {
   Ban
 } from 'lucide-react'
 import Link from 'next/link'
-
-// Type interfaces
-interface Claim {
-  id: string
-  claimNumber: string
-  status: string
-  claimAmount: string
-  patientName: string
-  dateSubmitted: string
-  description: string
-}
+import { Claim, AppointmentStatus, ClaimStatus, UserRole } from '@/types'
 
 export default function DashboardPage() {
   const { data: session, status } = useSession()
@@ -104,9 +94,9 @@ export default function DashboardPage() {
   // Calculate stats based on user role
   const getStats = () => {
     const totalClaims = claims.length
-    const approvedClaims = claims.filter((c: Claim) => c.status === 'APPROVED' || c.status === 'PAID').length
-    const pendingClaims = claims.filter((c: Claim) => c.status === 'SUBMITTED' || c.status === 'UNDER_REVIEW').length
-    const rejectedClaims = claims.filter((c: Claim) => c.status === 'REJECTED').length
+    const approvedClaims = claims.filter((c: Claim) => c.status === ClaimStatus.APPROVED || c.status === ClaimStatus.PAID).length
+    const pendingClaims = claims.filter((c: Claim) => c.status === ClaimStatus.SUBMITTED || c.status === ClaimStatus.UNDER_REVIEW).length
+    const rejectedClaims = claims.filter((c: Claim) => c.status === ClaimStatus.REJECTED).length
     const totalAmount = claims.reduce((sum: number, claim: Claim) => sum + parseFloat(claim.claimAmount), 0)
 
     return {
@@ -125,7 +115,7 @@ export default function DashboardPage() {
     try {
       await updateAppointment.mutateAsync({
         id: appointmentId,
-        data: { status: 'CONSULTED' }
+        data: { status: AppointmentStatus.CONSULTED }
       })
       toast.success(`Appointment with ${patientName} marked as consulted successfully!`)
     } catch (error) {
@@ -136,13 +126,13 @@ export default function DashboardPage() {
 
   const getDashboardTitle = () => {
     switch (session.user.role) {
-      case 'PATIENT':
+      case UserRole.PATIENT:
         return 'Patient Dashboard'
-      case 'DOCTOR':
+      case UserRole.DOCTOR:
         return 'Doctor Dashboard'
-      case 'INSURANCE':
+      case UserRole.INSURANCE:
         return 'Insurance Dashboard'
-      case 'BANK':
+      case UserRole.BANK:
         return 'Bank Dashboard'
       default:
         return 'Dashboard'
@@ -151,20 +141,20 @@ export default function DashboardPage() {
 
   const getWelcomeMessage = () => {
     switch (session.user.role) {
-      case 'PATIENT':
+      case UserRole.PATIENT:
         return 'Manage your insurance claims and track their status'
-      case 'DOCTOR':
+      case UserRole.DOCTOR:
         return 'Review and process patient claims'
-      case 'INSURANCE':
+      case UserRole.INSURANCE:
         return 'Review and approve insurance claims'
-      case 'BANK':
+      case UserRole.BANK:
         return 'Process approved claims for payment'
       default:
         return 'Welcome to the insurance claims portal'
     }
   }
 
-  const handleAppointmentAction = async (appointmentId: string, action: 'ACCEPTED' | 'REJECTED' | 'CANCELLED') => {
+  const handleAppointmentAction = async (appointmentId: string, action: AppointmentStatus) => {
     try {
       const response = await fetch(`/api/appointments/${appointmentId}`, {
         method: 'PUT',
@@ -264,11 +254,11 @@ export default function DashboardPage() {
           </div>
           
           <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
-            {session.user.role === 'PATIENT' && (
+            {session.user.role === UserRole.PATIENT && (
               <>
                 <Button 
                   onClick={() => setIsNewClaimModalOpen(true)}
-                  className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+                  className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   New Claim
@@ -276,7 +266,7 @@ export default function DashboardPage() {
                 
                 <Button 
                   onClick={() => setIsAppointmentModalOpen(true)}
-                  className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+                  className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer"
                 >
                   <Calendar className="h-4 w-4 mr-2" />
                   Book Appointment
@@ -291,7 +281,7 @@ export default function DashboardPage() {
                     }
                   }}
                   variant="outline" 
-                  className="w-full sm:w-auto border-green-300 dark:border-green-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-green-50 dark:hover:bg-green-950/20 hover:border-green-400 dark:hover:border-green-500 transition-all duration-300 hover:scale-[1.02]"
+                  className="w-full sm:w-auto border-green-300 dark:border-green-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-green-50 dark:hover:bg-green-950/20 hover:border-green-400 dark:hover:border-green-500 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
                   disabled={isLoadingAllAppointments}
                 >
                   <CalendarCheck className="h-4 w-4 mr-2" />
@@ -314,7 +304,7 @@ export default function DashboardPage() {
                     }
                   }}
                   variant="outline" 
-                  className="w-full sm:w-auto border-gray-300 dark:border-slate-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-300 hover:scale-[1.02]"
+                  className="w-full sm:w-auto border-gray-300 dark:border-slate-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
                   disabled={isLoadingAllClaims}
                 >
                   <FileText className="h-4 w-4 mr-2" />
@@ -330,26 +320,26 @@ export default function DashboardPage() {
               </>
             )}
 
-            {(session.user.role === 'INSURANCE' || session.user.role === 'BANK') && (
+            {(session.user.role === UserRole.INSURANCE || session.user.role === UserRole.BANK) && (
               <Link href="/users">
-                <Button variant="outline" className="w-full sm:w-auto border-gray-300 dark:border-slate-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-300 hover:scale-[1.02]">
+                <Button variant="outline" className="w-full sm:w-auto border-gray-300 dark:border-slate-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-300 hover:scale-[1.02] cursor-pointer">
                   <Users className="h-4 w-4 mr-2" />
                   Manage Users
                 </Button>
               </Link>
             )}
 
-            {session.user.role === 'DOCTOR' && (
+            {session.user.role === UserRole.DOCTOR && (
               <>
                 <Link href="/appointments">
-                  <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                  <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer">
                     <CalendarCheck className="h-4 w-4 mr-2" />
                     View My Appointments
                   </Button>
                 </Link>
                 
                 <Link href="/patients">
-                  <Button className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                  <Button className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer">
                     <Users className="h-4 w-4 mr-2" />
                     View My Patients
                   </Button>
@@ -357,7 +347,7 @@ export default function DashboardPage() {
                 
                 <Button 
                   onClick={() => setIsCreateReportModalOpen(true)}
-                  className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+                  className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer"
                 >
                   <FileText className="h-4 w-4 mr-2" />
                   Add Reports
@@ -372,7 +362,7 @@ export default function DashboardPage() {
                     }
                   }}
                   variant="outline" 
-                  className="w-full sm:w-auto border-amber-300 dark:border-amber-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-amber-50 dark:hover:bg-amber-950/20 hover:border-amber-400 dark:hover:border-amber-500 transition-all duration-300 hover:scale-[1.02]"
+                  className="w-full sm:w-auto border-amber-300 dark:border-amber-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-amber-50 dark:hover:bg-amber-950/20 hover:border-amber-400 dark:hover:border-amber-500 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
                   disabled={isLoadingAllAppointments}
                 >
                   <Calendar className="h-4 w-4 mr-2" />
@@ -391,7 +381,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Today's Appointments - Only for Doctors */}
-        {session.user.role === 'DOCTOR' && (
+        {session.user.role === UserRole.DOCTOR && (
           <Card className="border-0 shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg mb-8 sm:mb-12">
             <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
               <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Today&apos;s Appointments</CardTitle>
@@ -407,7 +397,7 @@ export default function DashboardPage() {
               ) : appointments.filter((appointment: any) => {
                 const today = new Date().toDateString()
                 const appointmentDate = new Date(appointment.scheduledAt).toDateString()
-                return appointmentDate === today && appointment.status === 'ACCEPTED'
+                return appointmentDate === today && appointment.status === AppointmentStatus.ACCEPTED
               }).length === 0 ? (
                 <div className="text-center py-8 sm:py-12 px-4">
                   <div className="bg-gradient-to-r from-blue-100 to-indigo-200 dark:from-blue-900 dark:to-indigo-800 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
@@ -418,7 +408,7 @@ export default function DashboardPage() {
                     You have no accepted appointments scheduled for today.
                   </p>
                   <Link href="/appointments">
-                    <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                    <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer">
                       <CalendarCheck className="h-4 w-4 mr-2" />
                       View All Appointments
                     </Button>
@@ -430,7 +420,7 @@ export default function DashboardPage() {
                     {appointments.filter((appointment: any) => {
                       const today = new Date().toDateString()
                       const appointmentDate = new Date(appointment.scheduledAt).toDateString()
-                      return appointmentDate === today && appointment.status === 'ACCEPTED'
+                      return appointmentDate === today && appointment.status === AppointmentStatus.ACCEPTED
                     }).map((appointment: any) => (
                       <Card key={appointment.id} className="border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-lg transition-all duration-300 hover:scale-[1.02] h-full">
                         <CardContent className="p-4 h-full flex flex-col">
@@ -468,14 +458,14 @@ export default function DashboardPage() {
                           
                           <div className="mt-4 pt-3 border-t border-gray-200 dark:border-slate-700 space-y-2">
                             <Link href={`/appointments/${appointment.id}`} className="w-full">
-                              <Button variant="ghost" size="sm" className="w-full hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                              <Button variant="ghost" size="sm" className="w-full hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
                                 View Details
                               </Button>
                             </Link>
-                            {appointment.status === 'ACCEPTED' && (
+                            {appointment.status === AppointmentStatus.ACCEPTED && (
                               <Button 
                                 size="sm" 
-                                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white disabled:from-gray-400 disabled:to-gray-500"
+                                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white disabled:from-gray-400 disabled:to-gray-500 cursor-pointer"
                                 onClick={() => handleMarkAsConsulted(appointment.id, appointment.patient?.name || 'Unknown Patient')}
                                 disabled={updateAppointment.isPending}
                               >
@@ -504,7 +494,7 @@ export default function DashboardPage() {
         )}
 
         {/* Recent Patients - Only for Doctors */}
-        {session.user.role === 'DOCTOR' && (
+        {session.user.role === UserRole.DOCTOR && (
           <Card className="border-0 shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg mb-8 sm:mb-12">
             <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
               <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Patients</CardTitle>
@@ -521,7 +511,7 @@ export default function DashboardPage() {
                 const threeDaysAgo = new Date()
                 threeDaysAgo.setDate(threeDaysAgo.getDate() - 3)
                 const appointmentDate = new Date(appointment.scheduledAt)
-                return appointmentDate >= threeDaysAgo && appointment.status === 'COMPLETED'
+                return appointmentDate >= threeDaysAgo && appointment.status === AppointmentStatus.COMPLETED
               }).length === 0 ? (
                 <div className="text-center py-8 sm:py-12 px-4">
                   <div className="bg-gradient-to-r from-green-100 to-emerald-200 dark:from-green-900 dark:to-emerald-800 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
@@ -532,7 +522,7 @@ export default function DashboardPage() {
                     No patients have completed appointments in the last 3 days.
                   </p>
                   <Link href="/patients">
-                    <Button className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                    <Button className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer">
                       <Users className="h-4 w-4 mr-2" />
                       View All Patients
                     </Button>
@@ -545,7 +535,7 @@ export default function DashboardPage() {
                       const threeDaysAgo = new Date()
                       threeDaysAgo.setDate(threeDaysAgo.getDate() - 3)
                       const appointmentDate = new Date(appointment.scheduledAt)
-                      return appointmentDate >= threeDaysAgo && appointment.status === 'COMPLETED'
+                      return appointmentDate >= threeDaysAgo && appointment.status === AppointmentStatus.COMPLETED
                     }).map((appointment: any) => (
                       <Card key={appointment.id} className="border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-lg transition-all duration-300 hover:scale-[1.02] h-full">
                         <CardContent className="p-4 h-full flex flex-col">
@@ -590,13 +580,13 @@ export default function DashboardPage() {
                           
                           <div className="mt-4 pt-3 border-t border-gray-200 dark:border-slate-700 space-y-2">
                             <Link href={`/patients/${appointment.patient?.id}`} className="w-full">
-                              <Button variant="ghost" size="sm" className="w-full hover:bg-green-50 dark:hover:bg-green-950/30 hover:text-green-600 dark:hover:text-green-400 transition-colors">
+                              <Button variant="ghost" size="sm" className="w-full hover:bg-green-50 dark:hover:bg-green-950/30 hover:text-green-600 dark:hover:text-green-400 transition-colors cursor-pointer">
                                 View Patient Profile
                               </Button>
                             </Link>
                             <Button 
                               size="sm" 
-                              className="w-full bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white"
+                              className="w-full bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white cursor-pointer"
                               onClick={() => setIsCreateReportModalOpen(true)}
                             >
                               Add Follow-up Report
@@ -613,7 +603,7 @@ export default function DashboardPage() {
         )}
 
         {/* Appointment Management - Only for Doctors */}
-        {session.user.role === 'DOCTOR' && isAppointmentManagementOpen && (
+        {session.user.role === UserRole.DOCTOR && isAppointmentManagementOpen && (
           <Card className="border-0 shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg mb-8 sm:mb-12">
             <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
               <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
@@ -633,7 +623,7 @@ export default function DashboardPage() {
                 const futureAppointments = allAppointmentsData?.appointments?.filter((appointment: any) => 
                   appointment.doctorId === session?.user?.id && 
                   new Date(appointment.scheduledAt) > new Date() &&
-                  appointment.status === 'PENDING'
+                  appointment.status === AppointmentStatus.PENDING
                 ) || []
 
                 return futureAppointments.length === 0 ? (
@@ -712,8 +702,8 @@ export default function DashboardPage() {
                               <div className="flex items-center justify-center space-x-2">
                                 <Button
                                   size="sm"
-                                  onClick={() => handleAppointmentAction(appointment.id, 'ACCEPTED')}
-                                  className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 h-8 text-xs font-medium rounded-md transition-all duration-200 hover:scale-105 hover:shadow-md"
+                                  onClick={() => handleAppointmentAction(appointment.id, AppointmentStatus.ACCEPTED)}
+                                  className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 h-8 text-xs font-medium rounded-md transition-all duration-200 hover:scale-105 hover:shadow-md cursor-pointer"
                                 >
                                   <Check className="h-3 w-3 mr-1" />
                                   Accept
@@ -721,8 +711,8 @@ export default function DashboardPage() {
                                 <Button
                                   size="sm"
                                   variant="destructive"
-                                  onClick={() => handleAppointmentAction(appointment.id, 'REJECTED')}
-                                  className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 h-8 text-xs font-medium rounded-md transition-all duration-200 hover:scale-105 hover:shadow-md"
+                                  onClick={() => handleAppointmentAction(appointment.id, AppointmentStatus.REJECTED)}
+                                  className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 h-8 text-xs font-medium rounded-md transition-all duration-200 hover:scale-105 hover:shadow-md cursor-pointer"
                                 >
                                   <X className="h-3 w-3 mr-1" />
                                   Reject
@@ -730,8 +720,8 @@ export default function DashboardPage() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => handleAppointmentAction(appointment.id, 'CANCELLED')}
-                                  className="border-orange-300 text-orange-600 hover:bg-orange-50 dark:border-orange-600 dark:text-orange-400 dark:hover:bg-orange-950/20 px-3 py-1 h-8 text-xs font-medium rounded-md transition-all duration-200 hover:scale-105 hover:shadow-md"
+                                  onClick={() => handleAppointmentAction(appointment.id, AppointmentStatus.CANCELLED)}
+                                  className="border-orange-300 text-orange-600 hover:bg-orange-50 dark:border-orange-600 dark:text-orange-400 dark:hover:bg-orange-950/20 px-3 py-1 h-8 text-xs font-medium rounded-md transition-all duration-200 hover:scale-105 hover:shadow-md cursor-pointer"
                                 >
                                   <Ban className="h-3 w-3 mr-1" />
                                   Cancel
@@ -750,7 +740,7 @@ export default function DashboardPage() {
         )}
 
         {/* Upcoming Accepted Appointments - Only for Doctors */}
-        {session.user.role === 'DOCTOR' && (
+        {session.user.role === UserRole.DOCTOR && (
           <Card className="border-0 shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg mb-8 sm:mb-12">
             <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
               <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
@@ -770,7 +760,7 @@ export default function DashboardPage() {
                 const upcomingAcceptedAppointments = allAppointmentsData?.appointments?.filter((appointment: any) => 
                   appointment.doctorId === session?.user?.id && 
                   new Date(appointment.scheduledAt) > new Date() &&
-                  appointment.status === 'ACCEPTED'
+                  appointment.status === AppointmentStatus.ACCEPTED
                 ) || []
 
                 return upcomingAcceptedAppointments.length === 0 ? (
@@ -881,7 +871,7 @@ export default function DashboardPage() {
                                       size="sm"
                                       variant="outline"
                                       onClick={() => setIsCreateReportModalOpen(true)}
-                                      className="border-purple-300 text-purple-600 hover:bg-purple-50 dark:border-purple-600 dark:text-purple-400 dark:hover:bg-purple-950/20 px-3 py-1 h-8 text-xs font-medium rounded-md transition-all duration-200 hover:scale-105 hover:shadow-md"
+                                      className="border-purple-300 text-purple-600 hover:bg-purple-50 dark:border-purple-600 dark:text-purple-400 dark:hover:bg-purple-950/20 px-3 py-1 h-8 text-xs font-medium rounded-md transition-all duration-200 hover:scale-105 hover:shadow-md cursor-pointer"
                                     >
                                       <FileText className="h-3 w-3 mr-1" />
                                       Add Report
@@ -889,8 +879,8 @@ export default function DashboardPage() {
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      onClick={() => handleAppointmentAction(appointment.id, 'CANCELLED')}
-                                      className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-600 dark:text-red-400 dark:hover:bg-red-950/20 px-3 py-1 h-8 text-xs font-medium rounded-md transition-all duration-200 hover:scale-105 hover:shadow-md"
+                                      onClick={() => handleAppointmentAction(appointment.id, AppointmentStatus.CANCELLED)}
+                                      className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-600 dark:text-red-400 dark:hover:bg-red-950/20 px-3 py-1 h-8 text-xs font-medium rounded-md transition-all duration-200 hover:scale-105 hover:shadow-md cursor-pointer"
                                     >
                                       <X className="h-3 w-3 mr-1" />
                                       Cancel
@@ -909,7 +899,7 @@ export default function DashboardPage() {
           </Card>
         )}
 
-        {session.user.role === 'PATIENT' && (
+        {session.user.role === UserRole.PATIENT && (
           <Card className="border-0 shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg">
             <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
               <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Claims</CardTitle>
@@ -932,7 +922,7 @@ export default function DashboardPage() {
                     You haven&apos;t submitted any claims yet. Create your first claim to get started.
                   </p>
                   <Link href="/claims/new">
-                    <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
+                    <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer">
                       <Plus className="h-4 w-4 mr-2" />
                       Create Your First Claim
                     </Button>
@@ -976,7 +966,7 @@ export default function DashboardPage() {
                               onClick={() => handleViewClaimDetails(claim.id)}
                               variant="ghost" 
                               size="sm" 
-                              className="w-full hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                              className="w-full hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
                             >
                               View Details
                             </Button>
@@ -992,7 +982,7 @@ export default function DashboardPage() {
         )}
 
         {/* Recent Appointments - Only for Patients */}
-        {session.user.role === 'PATIENT' && (
+        {session.user.role === UserRole.PATIENT && (
           <Card className="border-0 shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg mt-8 sm:mt-12">
             <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
               <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Appointments</CardTitle>
@@ -1016,7 +1006,7 @@ export default function DashboardPage() {
                   </p>
                   <Button 
                     onClick={() => setIsAppointmentModalOpen(true)}
-                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer"
                   >
                     <Calendar className="h-4 w-4 mr-2" />
                     Book Your First Appointment
@@ -1056,7 +1046,7 @@ export default function DashboardPage() {
                           
                           <div className="mt-4 pt-3 border-t border-gray-200 dark:border-slate-700">
                             <Link href={`/appointments/${appointment.id}`} className="w-full">
-                              <Button variant="ghost" size="sm" className="w-full hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                              <Button variant="ghost" size="sm" className="w-full hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
                                 View Details
                               </Button>
                             </Link>
@@ -1072,7 +1062,7 @@ export default function DashboardPage() {
         )}
 
         {/* Appointment History Section */}
-        {session.user.role === 'PATIENT' && isAppointmentHistoryOpen && (
+        {session.user.role === UserRole.PATIENT && isAppointmentHistoryOpen && (
           <Card className="border-0 shadow-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg">
             <CardHeader className="border-b border-gray-200 dark:border-slate-700">
               <div className="flex items-center justify-between">
@@ -1083,7 +1073,7 @@ export default function DashboardPage() {
                   onClick={() => setIsAppointmentHistoryOpen(false)}
                   variant="ghost"
                   size="sm"
-                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 cursor-pointer"
                 >
                   <ChevronUp className="h-4 w-4" />
                 </Button>
@@ -1109,7 +1099,7 @@ export default function DashboardPage() {
                   </p>
                   <Button 
                     onClick={() => setIsAppointmentModalOpen(true)}
-                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 cursor-pointer"
                   >
                     <Calendar className="h-4 w-4 mr-2" />
                     Book Your First Appointment
@@ -1163,7 +1153,7 @@ export default function DashboardPage() {
                               </TableCell>
                               <TableCell className="text-right">
                                 <Link href={`/appointments/${appointment.id}`}>
-                                  <Button variant="ghost" size="sm" className="hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400">
+                                  <Button variant="ghost" size="sm" className="hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer">
                                     View Details
                                   </Button>
                                 </Link>
@@ -1214,7 +1204,7 @@ export default function DashboardPage() {
 
                           <div className="flex justify-end">
                             <Link href={`/appointments/${appointment.id}`} className="w-full sm:w-auto">
-                              <Button variant="ghost" size="sm" className="w-full sm:w-auto hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                              <Button variant="ghost" size="sm" className="w-full sm:w-auto hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
                                 View Details
                               </Button>
                             </Link>
@@ -1230,7 +1220,7 @@ export default function DashboardPage() {
         )}
 
         {/* Claims History Section */}
-        {session.user.role === 'PATIENT' && isClaimHistoryOpen && (
+        {session.user.role === UserRole.PATIENT && isClaimHistoryOpen && (
           <Card className="border-0 shadow-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg mt-8">
             <CardHeader className="border-b border-gray-200 dark:border-slate-700">
               <div className="flex items-center justify-between">
@@ -1241,7 +1231,7 @@ export default function DashboardPage() {
                   onClick={() => setIsClaimHistoryOpen(false)}
                   variant="ghost"
                   size="sm"
-                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 cursor-pointer"
                 >
                   <ChevronUp className="h-4 w-4" />
                 </Button>
@@ -1344,7 +1334,7 @@ export default function DashboardPage() {
                                   onClick={() => handleViewClaimDetails(claim.id)}
                                   variant="ghost" 
                                   size="sm" 
-                                  className="hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400"
+                                  className="hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
                                 >
                                   View Details
                                 </Button>
@@ -1421,7 +1411,7 @@ export default function DashboardPage() {
                               onClick={() => handleViewClaimDetails(claim.id)}
                               variant="ghost" 
                               size="sm" 
-                              className="w-full sm:w-auto hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                              className="w-full sm:w-auto hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
                             >
                               View Details
                             </Button>

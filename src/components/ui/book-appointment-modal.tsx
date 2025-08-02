@@ -1,4 +1,4 @@
-'use client'
+  'use client'
 
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
@@ -13,6 +13,7 @@ import { toast } from 'sonner'
 import { Calendar, Clock, User } from 'lucide-react'
 import { useCreateAppointment } from '@/hooks/use-appointments'
 import { useUsers } from '@/hooks/use-users'
+import { UserRole } from '@/types'
 
 interface BookAppointmentModalProps {
   open: boolean
@@ -29,7 +30,7 @@ interface AppointmentFormData {
 export function BookAppointmentModal({ open, onOpenChange }: BookAppointmentModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const createAppointment = useCreateAppointment()
-  const { data: doctorsData, isLoading: doctorsLoading, error: doctorsError } = useUsers({ role: 'DOCTOR' })
+  const { data: doctorsData, isLoading: doctorsLoading, error: doctorsError } = useUsers({ role: UserRole.DOCTOR })
   
   // Debug logging
   console.log('Doctors data:', doctorsData)

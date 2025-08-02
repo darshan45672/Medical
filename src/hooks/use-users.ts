@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { UserRole } from '@prisma/client'
+import { UserRole } from '@/types'
 
 interface UserFilters {
   role?: UserRole
