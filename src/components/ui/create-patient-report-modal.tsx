@@ -262,58 +262,58 @@ export function CreatePatientReportModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[95vh] overflow-hidden flex flex-col bg-gray-50">
-        <DialogHeader className="bg-gradient-to-r from-blue-600 to-blue-700 -m-6 mb-0 p-6 border-b">
+      <DialogContent className="max-w-5xl max-h-[95vh] overflow-hidden flex flex-col bg-gray-50 dark:bg-slate-950">
+        <DialogHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-700 dark:to-indigo-700 -m-6 mb-0 p-6 border-b border-blue-200 dark:border-blue-800">
           <DialogTitle className="flex items-center gap-3 text-xl font-semibold text-white">
-            <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+            <div className="p-2 bg-white/20 dark:bg-white/10 rounded-lg backdrop-blur-sm">
               <Stethoscope className="h-6 w-6 text-white" />
             </div>
             Create Patient Report
           </DialogTitle>
-          <DialogDescription className="text-blue-100 mt-2">
+          <DialogDescription className="text-blue-100 dark:text-blue-200 mt-2">
             Create a comprehensive medical report for a consulted patient with supporting documents
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto p-6 -m-6 mt-0 bg-gray-50">
+        <div className="flex-1 overflow-y-auto p-6 -m-6 mt-0 bg-gray-50 dark:bg-slate-950">
           {appointmentsLoading ? (
             <div className="flex flex-col items-center justify-center py-12">
-              <div className="p-4 bg-white rounded-full shadow-lg">
+              <div className="p-4 bg-white dark:bg-slate-900 rounded-full shadow-lg border border-gray-200 dark:border-slate-700">
                 <LoadingSpinner />
               </div>
-              <p className="text-gray-600 mt-4 font-medium">Loading appointments...</p>
+              <p className="text-gray-600 dark:text-gray-400 mt-4 font-medium">Loading appointments...</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Appointment Selection Section */}
-              <div className="bg-white rounded-xl border border-gray-300 p-6 shadow-lg hover:shadow-xl transition-shadow duration-200">
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-700 p-6 shadow-lg hover:shadow-xl transition-shadow duration-200">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <Calendar className="h-5 w-5 text-blue-600" />
+                  <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Patient Selection</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Patient Selection</h3>
                 </div>
                 
                 <div>
-                  <Label htmlFor="appointment" className="text-sm font-medium text-gray-700">
+                  <Label htmlFor="appointment" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Select Patient Appointment *
                   </Label>
                   <Select value={selectedAppointmentId} onValueChange={setSelectedAppointmentId}>
-                    <SelectTrigger className="mt-3 h-12 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white hover:bg-gray-50 transition-colors">
+                    <SelectTrigger className="mt-3 h-12 border-gray-300 dark:border-slate-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors text-gray-900 dark:text-gray-100">
                       <SelectValue placeholder="🔍 Choose a consulted appointment" />
                     </SelectTrigger>
-                    <SelectContent className="max-h-60 border-gray-300 shadow-xl">
+                    <SelectContent className="max-h-60 border-gray-300 dark:border-slate-600 shadow-xl bg-white dark:bg-slate-800">
                       {appointmentsData?.appointments.map((appointment: Appointment) => (
-                        <SelectItem key={appointment.id} value={appointment.id} className="p-4 hover:bg-blue-50 focus:bg-blue-50">
+                        <SelectItem key={appointment.id} value={appointment.id} className="p-4 hover:bg-blue-50 dark:hover:bg-blue-950/30 focus:bg-blue-50 dark:focus:bg-blue-950/30 text-gray-900 dark:text-gray-100">
                           <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-md">
+                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-full flex items-center justify-center shadow-md">
                               <User className="h-5 w-5 text-white" />
                             </div>
                             <div>
-                              <div className="font-medium text-gray-900">
+                              <div className="font-medium text-gray-900 dark:text-gray-100">
                                 {appointment.patient.name || appointment.patient.email}
                               </div>
-                              <div className="text-sm text-gray-500 flex items-center gap-2">
+                              <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
                                 <Calendar className="h-3 w-3" />
                                 {new Date(appointment.scheduledAt).toLocaleDateString()} at{' '}
                                 {new Date(appointment.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -325,16 +325,16 @@ export function CreatePatientReportModal({
                     </SelectContent>
                   </Select>
                   {appointmentsData?.appointments.length === 0 && (
-                    <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl shadow-sm">
+                    <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
                       <div className="flex items-center gap-3">
-                        <div className="p-1 bg-amber-100 rounded-full">
-                          <ClipboardCheck className="h-5 w-5 text-amber-600" />
+                        <div className="p-1 bg-amber-100 dark:bg-amber-900/50 rounded-full">
+                          <ClipboardCheck className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                         </div>
                         <div>
-                          <p className="text-sm text-amber-800 font-medium">
+                          <p className="text-sm text-amber-800 dark:text-amber-200 font-medium">
                             No consulted appointments found
                           </p>
-                          <p className="text-sm text-amber-700 mt-1">
+                          <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
                             Complete an appointment first to create reports.
                           </p>
                         </div>
@@ -345,29 +345,29 @@ export function CreatePatientReportModal({
 
                 {/* Selected Appointment Details */}
                 {selectedAppointment && (
-                  <div className="mt-6 p-5 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-xl shadow-sm">
+                  <div className="mt-6 p-5 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border border-green-200 dark:border-green-800 rounded-xl shadow-sm">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full flex items-center justify-center shadow-md">
+                        <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 dark:from-green-600 dark:to-emerald-700 rounded-full flex items-center justify-center shadow-md">
                           <User className="h-6 w-6 text-white" />
                         </div>
                         <div>
-                          <h4 className="font-semibold text-gray-900 text-lg">
+                          <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-lg">
                             {selectedAppointment.patient.name || selectedAppointment.patient.email}
                           </h4>
-                          <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                          <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mt-1">
                             <div className="flex items-center gap-1">
-                              <Calendar className="h-4 w-4 text-emerald-600" />
+                              <Calendar className="h-4 w-4 text-green-600 dark:text-green-400" />
                               <span>{new Date(selectedAppointment.scheduledAt).toLocaleDateString()}</span>
                             </div>
                             <div className="flex items-center gap-1">
-                              <Clock className="h-4 w-4 text-emerald-600" />
+                              <Clock className="h-4 w-4 text-green-600 dark:text-green-400" />
                               <span>{new Date(selectedAppointment.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                             </div>
                           </div>
                         </div>
                       </div>
-                      <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 px-3 py-1 font-medium">
+                      <Badge className="bg-green-100 dark:bg-green-950/50 text-green-800 dark:text-green-200 border-green-300 dark:border-green-700 px-3 py-1 font-medium">
                         ✓ CONSULTED
                       </Badge>
                     </div>
@@ -376,31 +376,31 @@ export function CreatePatientReportModal({
               </div>
 
               {/* Report Type Selection */}
-              <div className="bg-white rounded-xl border border-gray-300 p-6 shadow-lg hover:shadow-xl transition-shadow duration-200">
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-700 p-6 shadow-lg hover:shadow-xl transition-shadow duration-200">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-indigo-100 rounded-lg">
-                    <FileText className="h-5 w-5 text-indigo-600" />
+                  <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Report Information</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Report Information</h3>
                 </div>
 
                 <div className="space-y-6">
                   <div>
-                    <Label htmlFor="reportType" className="text-sm font-medium text-gray-700 mb-2 block">
+                    <Label htmlFor="reportType" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                       Report Type *
                     </Label>
                     <Select value={formData.reportType} onValueChange={(value) => handleChange('reportType', value)}>
-                      <SelectTrigger className="h-12 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 bg-white hover:bg-gray-50 transition-colors">
+                      <SelectTrigger className="h-12 border-gray-300 dark:border-slate-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors text-gray-900 dark:text-gray-100">
                         <SelectValue placeholder="📋 Choose report type" />
                       </SelectTrigger>
-                      <SelectContent className="max-h-80 border-gray-300 shadow-xl">
+                      <SelectContent className="max-h-80 border-gray-300 dark:border-slate-600 shadow-xl bg-white dark:bg-slate-800">
                         {reportTypes.map((type) => (
-                          <SelectItem key={type.value} value={type.value} className="p-4 hover:bg-indigo-50 focus:bg-indigo-50">
+                          <SelectItem key={type.value} value={type.value} className="p-4 hover:bg-blue-50 dark:hover:bg-blue-950/30 focus:bg-blue-50 dark:focus:bg-blue-950/30 text-gray-900 dark:text-gray-100">
                             <div className="flex items-center gap-3">
                               <span className="text-xl">{type.icon}</span>
                               <div>
-                                <div className="font-medium text-gray-900">{type.label}</div>
-                                <div className="text-sm text-gray-500">{type.description}</div>
+                                <div className="font-medium text-gray-900 dark:text-gray-100">{type.label}</div>
+                                <div className="text-sm text-gray-500 dark:text-gray-400">{type.description}</div>
                               </div>
                             </div>
                           </SelectItem>
@@ -411,7 +411,7 @@ export function CreatePatientReportModal({
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div>
-                      <Label htmlFor="title" className="text-sm font-medium text-gray-700 mb-2 block">
+                      <Label htmlFor="title" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                         Report Title *
                       </Label>
                       <Input
@@ -419,13 +419,13 @@ export function CreatePatientReportModal({
                         value={formData.title}
                         onChange={(e) => handleChange('title', e.target.value)}
                         placeholder="Enter descriptive report title"
-                        className="h-11 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 bg-white hover:bg-gray-50 transition-colors"
+                        className="h-11 border-gray-300 dark:border-slate-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors text-gray-900 dark:text-gray-100"
                         required
                       />
                     </div>
                     
                     <div>
-                      <Label htmlFor="followUpDate" className="text-sm font-medium text-gray-700 mb-2 block">
+                      <Label htmlFor="followUpDate" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                         Follow-up Date
                       </Label>
                       <Input
@@ -433,13 +433,13 @@ export function CreatePatientReportModal({
                         type="datetime-local"
                         value={formData.followUpDate}
                         onChange={(e) => handleChange('followUpDate', e.target.value)}
-                        className="h-11 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 bg-white hover:bg-gray-50 transition-colors"
+                        className="h-11 border-gray-300 dark:border-slate-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors text-gray-900 dark:text-gray-100"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <Label htmlFor="description" className="text-sm font-medium text-gray-700 mb-2 block">
+                    <Label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                       Description *
                     </Label>
                     <Textarea
@@ -447,7 +447,7 @@ export function CreatePatientReportModal({
                       value={formData.description}
                       onChange={(e) => handleChange('description', e.target.value)}
                       placeholder="Provide a comprehensive description of the medical findings, observations, and assessment"
-                      className="min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 resize-none bg-white hover:bg-gray-50 transition-colors"
+                      className="min-h-[100px] border-gray-300 dark:border-slate-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 resize-none bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors text-gray-900 dark:text-gray-100"
                       required
                     />
                   </div>
@@ -455,17 +455,17 @@ export function CreatePatientReportModal({
               </div>
 
               {/* Medical Details Section */}
-              <div className="bg-white rounded-xl border border-gray-300 p-6 shadow-lg hover:shadow-xl transition-shadow duration-200">
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-700 p-6 shadow-lg hover:shadow-xl transition-shadow duration-200">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <ClipboardCheck className="h-5 w-5 text-purple-600" />
+                  <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <ClipboardCheck className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Medical Details</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Medical Details</h3>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div>
-                    <Label htmlFor="diagnosis" className="text-sm font-medium text-gray-700 mb-2 block">
+                    <Label htmlFor="diagnosis" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                       Diagnosis
                     </Label>
                     <Textarea
@@ -473,12 +473,12 @@ export function CreatePatientReportModal({
                       value={formData.diagnosis}
                       onChange={(e) => handleChange('diagnosis', e.target.value)}
                       placeholder="Primary and secondary diagnoses"
-                      className="min-h-[100px] border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 resize-none bg-white hover:bg-gray-50 transition-colors"
+                      className="min-h-[100px] border-gray-300 dark:border-slate-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 resize-none bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors text-gray-900 dark:text-gray-100"
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="treatment" className="text-sm font-medium text-gray-700 mb-2 block">
+                    <Label htmlFor="treatment" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                       Treatment Provided
                     </Label>
                     <Textarea
@@ -486,12 +486,12 @@ export function CreatePatientReportModal({
                       value={formData.treatment}
                       onChange={(e) => handleChange('treatment', e.target.value)}
                       placeholder="Procedures, therapies, and interventions"
-                      className="min-h-[100px] border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 resize-none bg-white hover:bg-gray-50 transition-colors"
+                      className="min-h-[100px] border-gray-300 dark:border-slate-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 resize-none bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors text-gray-900 dark:text-gray-100"
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="medications" className="text-sm font-medium text-gray-700 mb-2 block">
+                    <Label htmlFor="medications" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                       Medications
                     </Label>
                     <Textarea
@@ -499,12 +499,12 @@ export function CreatePatientReportModal({
                       value={formData.medications}
                       onChange={(e) => handleChange('medications', e.target.value)}
                       placeholder="Prescribed medications, dosages, and instructions"
-                      className="min-h-[100px] border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 resize-none bg-white hover:bg-gray-50 transition-colors"
+                      className="min-h-[100px] border-gray-300 dark:border-slate-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 resize-none bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors text-gray-900 dark:text-gray-100"
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="recommendations" className="text-sm font-medium text-gray-700 mb-2 block">
+                    <Label htmlFor="recommendations" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                       Recommendations
                     </Label>
                     <Textarea
@@ -512,20 +512,20 @@ export function CreatePatientReportModal({
                       value={formData.recommendations}
                       onChange={(e) => handleChange('recommendations', e.target.value)}
                       placeholder="Follow-up care, lifestyle changes, and additional recommendations"
-                      className="min-h-[100px] border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 resize-none bg-white hover:bg-gray-50 transition-colors"
+                      className="min-h-[100px] border-gray-300 dark:border-slate-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 resize-none bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors text-gray-900 dark:text-gray-100"
                     />
                   </div>
                 </div>
               </div>
 
               {/* File Upload Section */}
-              <div className="bg-white rounded-xl border border-gray-300 p-6 shadow-lg hover:shadow-xl transition-shadow duration-200">
+              <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-300 dark:border-slate-600 p-6 shadow-lg hover:shadow-xl transition-shadow duration-200">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <Upload className="h-5 w-5 text-green-600" />
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
+                    <Upload className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Supporting Documents</h3>
-                  <Badge variant="outline" className="ml-auto bg-green-50 text-green-700 border-green-300">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Supporting Documents</h3>
+                  <Badge variant="outline" className="ml-auto bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 border-blue-300 dark:border-blue-700">
                     {uploadFiles.length} file{uploadFiles.length !== 1 ? 's' : ''}
                   </Badge>
                 </div>
@@ -533,29 +533,29 @@ export function CreatePatientReportModal({
                 <div
                   className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 ${
                     dragOver 
-                      ? 'border-green-400 bg-green-50 scale-105 shadow-lg' 
-                      : 'border-gray-300 hover:border-green-400 hover:bg-green-50'
+                      ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/30 scale-105 shadow-lg' 
+                      : 'border-gray-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950/20'
                   }`}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
                 >
                   <div className="space-y-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-lg">
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto shadow-lg">
                       <Upload className="h-8 w-8 text-white" />
                     </div>
                     <div>
-                      <p className="text-lg font-medium text-gray-900 mb-1">
+                      <p className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-1">
                         Drop files here or click to browse
                       </p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
                         Supports PDF, Images, and Documents (Max 10MB per file)
                       </p>
                     </div>
                     <Button
                       type="button"
                       variant="outline"
-                      className="border-green-300 text-green-600 hover:bg-green-50 hover:border-green-400 transition-colors"
+                      className="border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:border-blue-400 dark:hover:border-blue-500 transition-colors"
                       onClick={() => fileInputRef.current?.click()}
                     >
                       <Plus className="h-4 w-4 mr-2" />
@@ -576,7 +576,7 @@ export function CreatePatientReportModal({
                 {uploadFiles.length > 0 && (
                   <div className="mt-6 space-y-3">
                     <div className="flex items-center justify-between">
-                      <Label className="text-sm font-medium text-gray-700">
+                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         Uploaded Files ({uploadFiles.length})
                       </Label>
                       <Button
@@ -584,37 +584,37 @@ export function CreatePatientReportModal({
                         variant="ghost"
                         size="sm"
                         onClick={() => setUploadFiles([])}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30"
                       >
                         Clear All
                       </Button>
                     </div>
                     <div className="grid gap-3">
                       {uploadFiles.map((uploadFile) => (
-                        <div key={uploadFile.id} className="flex items-center gap-4 p-4 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div key={uploadFile.id} className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors">
                           <div className="flex-shrink-0">
                             {uploadFile.preview ? (
                               <div className="relative group">
                                 <img
                                   src={uploadFile.preview}
                                   alt="Preview"
-                                  className="w-12 h-12 object-cover rounded-lg border-2 border-white shadow-sm"
+                                  className="w-12 h-12 object-cover rounded-lg border-2 border-white dark:border-slate-500 shadow-sm"
                                 />
                                 <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-all duration-200 flex items-center justify-center">
                                   <Eye className="h-4 w-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                                 </div>
                               </div>
                             ) : (
-                              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <FileImage className="h-6 w-6 text-blue-600" />
+                              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center">
+                                <FileImage className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                               </div>
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                               {uploadFile.file.name}
                             </p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
                               {(uploadFile.file.size / 1024 / 1024).toFixed(2)} MB • {uploadFile.file.type || 'Unknown type'}
                             </p>
                           </div>
@@ -625,13 +625,13 @@ export function CreatePatientReportModal({
                                 updateFileType(uploadFile.id, value)
                               }
                             >
-                              <SelectTrigger className="w-40 h-9 text-xs">
+                              <SelectTrigger className="w-40 h-9 text-xs border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100">
                                 <SelectValue />
                               </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="MEDICAL_REPORT">📋 Medical Report</SelectItem>
-                                <SelectItem value="PRESCRIPTION">💊 Prescription</SelectItem>
-                                <SelectItem value="SCAN_REPORT">📷 Scan Report</SelectItem>
+                              <SelectContent className="bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600">
+                                <SelectItem value="MEDICAL_REPORT" className="text-gray-900 dark:text-gray-100 hover:bg-blue-50 dark:hover:bg-blue-950/30">📋 Medical Report</SelectItem>
+                                <SelectItem value="PRESCRIPTION" className="text-gray-900 dark:text-gray-100 hover:bg-blue-50 dark:hover:bg-blue-950/30">💊 Prescription</SelectItem>
+                                <SelectItem value="SCAN_REPORT" className="text-gray-900 dark:text-gray-100 hover:bg-blue-50 dark:hover:bg-blue-950/30">📷 Scan Report</SelectItem>
                               </SelectContent>
                             </Select>
                             <Button
@@ -639,7 +639,7 @@ export function CreatePatientReportModal({
                               variant="ghost"
                               size="sm"
                               onClick={() => removeFile(uploadFile.id)}
-                              className="h-9 w-9 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                              className="h-9 w-9 p-0 text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30"
                             >
                               <X className="h-4 w-4" />
                             </Button>
@@ -652,20 +652,20 @@ export function CreatePatientReportModal({
               </div>
 
               {/* Action Buttons */}
-              <div className="bg-white rounded-xl border border-gray-300 p-6 shadow-lg">
+              <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-300 dark:border-slate-600 p-6 shadow-lg">
                 <div className="flex flex-col sm:flex-row gap-4 sm:justify-end">
                   <Button 
                     type="button" 
                     variant="outline" 
                     onClick={onClose}
-                    className="order-2 sm:order-1 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-colors px-6"
+                    className="order-2 sm:order-1 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 hover:border-gray-400 dark:hover:border-slate-500 transition-colors px-6"
                   >
                     Cancel
                   </Button>
                   <Button 
                     type="submit" 
                     disabled={isUploading || createReport.isPending || !selectedAppointmentId}
-                    className="order-1 sm:order-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 shadow-lg hover:shadow-xl transition-all duration-200 disabled:from-gray-400 disabled:to-gray-500"
+                    className="order-1 sm:order-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 shadow-lg hover:shadow-xl transition-all duration-200 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed"
                   >
                     {isUploading ? (
                       <>
