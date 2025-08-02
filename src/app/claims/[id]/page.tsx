@@ -166,9 +166,16 @@ export default function ClaimDetailPage({ params }: ClaimPageProps) {
     }
   }
 
-  const handleViewDocument = async (documentId: string, filename: string) => {
+  const handleViewDocument = async (document: any) => {
     try {
-      const response = await fetch(`/api/documents/${documentId}/view`)
+      // If the document has a URL (S3 URL), open it directly
+      if (document.url) {
+        window.open(document.url, '_blank')
+        return
+      }
+      
+      // Fallback to API endpoint if no S3 URL is available
+      const response = await fetch(`/api/documents/${document.id}/view`)
       if (response.ok) {
         const blob = await response.blob()
         const url = window.URL.createObjectURL(blob)
@@ -183,10 +190,25 @@ export default function ClaimDetailPage({ params }: ClaimPageProps) {
     }
   }
 
-  const handleDownloadDocument = async (documentId: string, filename: string) => {
+  const handleDownloadDocument = async (document: any, filename: string) => {
     try {
-      setDownloadingItem(documentId)
-      const response = await fetch(`/api/documents/${documentId}/download`)
+      setDownloadingItem(document.id)
+      
+      // If the document has a URL (S3 URL), download it directly
+      if (document.url) {
+        const downloadLink = document.createElement('a')
+        downloadLink.href = document.url
+        downloadLink.download = filename
+        downloadLink.target = '_blank'
+        document.body.appendChild(downloadLink)
+        downloadLink.click()
+        document.body.removeChild(downloadLink)
+        toast.success('Document downloaded successfully')
+        return
+      }
+      
+      // Fallback to API endpoint if no S3 URL is available
+      const response = await fetch(`/api/documents/${document.id}/download`)
       if (response.ok) {
         const blob = await response.blob()
         const url = window.URL.createObjectURL(blob)
@@ -209,9 +231,16 @@ export default function ClaimDetailPage({ params }: ClaimPageProps) {
     }
   }
 
-  const handleViewReport = async (reportId: string) => {
+  const handleViewReport = async (report: any) => {
     try {
-      const response = await fetch(`/api/reports/${reportId}/view`)
+      // If the report has a documentUrl (S3 URL), open it directly
+      if (report.documentUrl) {
+        window.open(report.documentUrl, '_blank')
+        return
+      }
+      
+      // Fallback to API endpoint if no S3 URL is available
+      const response = await fetch(`/api/reports/${report.id}/view`)
       if (response.ok) {
         const blob = await response.blob()
         const url = window.URL.createObjectURL(blob)
@@ -226,10 +255,25 @@ export default function ClaimDetailPage({ params }: ClaimPageProps) {
     }
   }
 
-  const handleDownloadReport = async (reportId: string, title: string) => {
+  const handleDownloadReport = async (report: any, title: string) => {
     try {
-      setDownloadingItem(reportId)
-      const response = await fetch(`/api/reports/${reportId}/download`)
+      setDownloadingItem(report.id)
+      
+      // If the report has a documentUrl (S3 URL), download it directly
+      if (report.documentUrl) {
+        const link = document.createElement('a')
+        link.href = report.documentUrl
+        link.download = `${title.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`
+        link.target = '_blank'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        toast.success('Report downloaded successfully')
+        return
+      }
+      
+      // Fallback to API endpoint if no S3 URL is available
+      const response = await fetch(`/api/reports/${report.id}/download`)
       if (response.ok) {
         const blob = await response.blob()
         const url = window.URL.createObjectURL(blob)
@@ -719,7 +763,7 @@ export default function ClaimDetailPage({ params }: ClaimPageProps) {
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            onClick={() => handleViewDocument(document.id, document.originalName)}
+                            onClick={() => handleViewDocument(document)}
                             className="flex-1"
                           >
                             <Eye className="h-4 w-4 mr-1" />
@@ -728,7 +772,7 @@ export default function ClaimDetailPage({ params }: ClaimPageProps) {
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            onClick={() => handleDownloadDocument(document.id, document.originalName)}
+                            onClick={() => handleDownloadDocument(document, document.originalName)}
                             disabled={downloadingItem === document.id}
                             className="flex-1"
                           >
@@ -795,7 +839,7 @@ export default function ClaimDetailPage({ params }: ClaimPageProps) {
                               <Button 
                                 variant="outline" 
                                 size="sm" 
-                                onClick={() => handleViewReport(claimReport.report.id)}
+                                onClick={() => handleViewReport(claimReport.report)}
                               >
                                 <Eye className="h-4 w-4 mr-1" />
                                 View
@@ -804,7 +848,7 @@ export default function ClaimDetailPage({ params }: ClaimPageProps) {
                             <Button 
                               variant="outline" 
                               size="sm" 
-                              onClick={() => handleDownloadReport(claimReport.report.id, claimReport.report.title)}
+                              onClick={() => handleDownloadReport(claimReport.report, claimReport.report.title)}
                               disabled={downloadingItem === claimReport.report.id}
                             >
                               {downloadingItem === claimReport.report.id ? (

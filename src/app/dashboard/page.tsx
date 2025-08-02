@@ -24,6 +24,7 @@ import {
   FileText, 
   Plus, 
   Users, 
+  User,
   DollarSign, 
   Clock,
   CheckCircle,
@@ -349,6 +350,259 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
+
+        {/* Doctor Dashboard Sections */}
+        {session.user.role === UserRole.DOCTOR && (
+          <>
+            {/* Today's Appointments */}
+            <Card className="border-0 shadow-2xl bg-white dark:bg-slate-800 mb-8 sm:mb-12">
+              <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
+                <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Today's Appointments</CardTitle>
+                <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+                  Your scheduled appointments for today
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0 sm:p-6">
+                {isLoadingAppointments ? (
+                  <div className="flex justify-center py-8 sm:py-12">
+                    <LoadingSpinner />
+                  </div>
+                ) : (() => {
+                  const today = new Date()
+                  const todaysAppointments = appointments.filter((appointment: any) => {
+                    const appointmentDate = new Date(appointment.scheduledAt)
+                    return appointmentDate.toDateString() === today.toDateString()
+                  })
+                  
+                  return todaysAppointments.length === 0 ? (
+                    <div className="text-center py-8 sm:py-12 px-4">
+                      <div className="bg-gradient-to-r from-blue-100 to-blue-200 dark:from-blue-700 dark:to-blue-600 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                        <Calendar className="h-8 w-8 sm:h-10 sm:w-10 text-blue-600 dark:text-blue-300" />
+                      </div>
+                      <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">No appointments today</h3>
+                      <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4 sm:mb-6 max-w-md mx-auto">
+                        You don't have any scheduled appointments for today. Check back tomorrow or view all appointments.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4 px-4 sm:px-6">
+                      {todaysAppointments.map((appointment: any) => (
+                        <Card key={appointment.id} className="border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-lg transition-all duration-300">
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-4">
+                                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                                  <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                </div>
+                                <div>
+                                  <h4 className="font-medium text-gray-900 dark:text-gray-100">
+                                    {appointment.patient?.name || 'Unknown Patient'}
+                                  </h4>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    {new Date(appointment.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </p>
+                                  {appointment.notes && (
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                      {appointment.notes}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <AppointmentStatusBadge status={appointment.status} />
+                                {appointment.status === AppointmentStatus.ACCEPTED && (
+                                  <div className="flex gap-2">
+                                    <Button 
+                                      size="sm"
+                                      onClick={() => handleAppointmentAction(appointment.id, AppointmentStatus.COMPLETED)}
+                                      className="bg-green-600 hover:bg-green-700 text-white"
+                                    >
+                                      <Check className="h-4 w-4 mr-1" />
+                                      Complete
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )
+                })()}
+              </CardContent>
+            </Card>
+
+            {/* Today's Patients */}
+            <Card className="border-0 shadow-2xl bg-white dark:bg-slate-800 mb-8 sm:mb-12">
+              <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
+                <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Today's Patients</CardTitle>
+                <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+                  Patients you'll see today with their appointment details
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0 sm:p-6">
+                {isLoadingAppointments ? (
+                  <div className="flex justify-center py-8 sm:py-12">
+                    <LoadingSpinner />
+                  </div>
+                ) : (() => {
+                  const today = new Date()
+                  const todaysPatients = appointments
+                    .filter((appointment: any) => {
+                      const appointmentDate = new Date(appointment.scheduledAt)
+                      return appointmentDate.toDateString() === today.toDateString()
+                    })
+                    .reduce((unique: any[], appointment: any) => {
+                      const existingPatient = unique.find(p => p.patient?.id === appointment.patient?.id)
+                      if (!existingPatient) {
+                        unique.push(appointment)
+                      }
+                      return unique
+                    }, [])
+                  
+                  return todaysPatients.length === 0 ? (
+                    <div className="text-center py-8 sm:py-12 px-4">
+                      <div className="bg-gradient-to-r from-purple-100 to-purple-200 dark:from-purple-700 dark:to-purple-600 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                        <Users className="h-8 w-8 sm:h-10 sm:w-10 text-purple-600 dark:text-purple-300" />
+                      </div>
+                      <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">No patients today</h3>
+                      <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4 sm:mb-6 max-w-md mx-auto">
+                        You don't have any patients scheduled for today.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-4 sm:px-6">
+                      {todaysPatients.map((appointment: any) => (
+                        <Card key={appointment.patient?.id} className="border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                          <CardContent className="p-4">
+                            <div className="flex items-start space-x-3 mb-3">
+                              <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                                <User className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                                  {appointment.patient?.name || 'Unknown Patient'}
+                                </h4>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                  {appointment.patient?.email}
+                                </p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                  {new Date(appointment.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-500 dark:text-gray-400">Status:</span>
+                                <AppointmentStatusBadge status={appointment.status} />
+                              </div>
+                              {appointment.notes && (
+                                <div className="text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-slate-700 rounded p-2">
+                                  {appointment.notes}
+                                </div>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )
+                })()}
+              </CardContent>
+            </Card>
+
+            {/* Appointment Requests Management */}
+            <Card className="border-0 shadow-2xl bg-white dark:bg-slate-800 mb-8 sm:mb-12">
+              <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
+                <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Appointment Requests</CardTitle>
+                <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+                  Pending appointment requests that need your approval
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0 sm:p-6">
+                {isLoadingAppointments ? (
+                  <div className="flex justify-center py-8 sm:py-12">
+                    <LoadingSpinner />
+                  </div>
+                ) : (() => {
+                  const pendingRequests = appointments.filter((appointment: any) => 
+                    appointment.status === AppointmentStatus.PENDING
+                  )
+                  
+                  return pendingRequests.length === 0 ? (
+                    <div className="text-center py-8 sm:py-12 px-4">
+                      <div className="bg-gradient-to-r from-amber-100 to-amber-200 dark:from-amber-700 dark:to-amber-600 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                        <CalendarCheck className="h-8 w-8 sm:h-10 sm:w-10 text-amber-600 dark:text-amber-300" />
+                      </div>
+                      <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">No pending requests</h3>
+                      <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4 sm:mb-6 max-w-md mx-auto">
+                        You don't have any pending appointment requests at the moment.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4 px-4 sm:px-6">
+                      {pendingRequests.map((appointment: any) => (
+                        <Card key={appointment.id} className="border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20 hover:shadow-lg transition-all duration-300">
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-4">
+                                <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+                                  <Calendar className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                                </div>
+                                <div>
+                                  <h4 className="font-medium text-gray-900 dark:text-gray-100">
+                                    {appointment.patient?.name || 'Unknown Patient'}
+                                  </h4>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    {formatDate(appointment.scheduledAt)} at {new Date(appointment.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    {appointment.patient?.email}
+                                  </p>
+                                  {appointment.notes && (
+                                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 bg-white dark:bg-slate-800 rounded px-2 py-1">
+                                      {appointment.notes}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <Badge variant="outline" className="border-amber-300 text-amber-700 dark:border-amber-600 dark:text-amber-300">
+                                  Pending
+                                </Badge>
+                                <div className="flex gap-2">
+                                  <Button 
+                                    size="sm"
+                                    onClick={() => handleAppointmentAction(appointment.id, AppointmentStatus.ACCEPTED)}
+                                    className="bg-green-600 hover:bg-green-700 text-white"
+                                  >
+                                    <Check className="h-4 w-4 mr-1" />
+                                    Accept
+                                  </Button>
+                                  <Button 
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleAppointmentAction(appointment.id, AppointmentStatus.CANCELLED)}
+                                    className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-600 dark:text-red-400 dark:hover:bg-red-950/20"
+                                  >
+                                    <X className="h-4 w-4 mr-1" />
+                                    Decline
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )
+                })()}
+              </CardContent>
+            </Card>
+          </>
+        )}
 
         {/* Patient Recent Claims and Appointments */}
         {session.user.role === UserRole.PATIENT && (
