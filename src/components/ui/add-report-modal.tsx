@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
+import Image from 'next/image'
 import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -390,9 +391,11 @@ export function AddReportModal({ open, onOpenChange }: AddReportModalProps) {
                       {/* File Preview/Icon */}
                       <div className="flex-shrink-0">
                         {uploadFile.preview ? (
-                          <img
+                          <Image
                             src={uploadFile.preview}
                             alt="Preview"
+                            width={48}
+                            height={48}
                             className="w-12 h-12 object-cover rounded-lg"
                           />
                         ) : (

@@ -106,7 +106,7 @@ export function NewClaimModal({ open, onOpenChange }: NewClaimModalProps) {
         claimAmount: '',
         description: ''
       })
-    } catch (error) {
+    } catch {
       toast.error('Failed to create claim')
     }
   }

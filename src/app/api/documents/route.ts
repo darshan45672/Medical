@@ -222,7 +222,7 @@ export async function GET(request: NextRequest) {
     const appointmentId = searchParams.get('appointmentId')
     const patientId = searchParams.get('patientId')
 
-    let whereClause: any = {}
+    const whereClause: any = {}
 
     if (session.user.role === 'DOCTOR') {
       // Doctors can see documents for their appointments

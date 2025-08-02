@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10')
     const skip = (page - 1) * limit
 
-    let whereClause: Record<string, unknown> = {}
+    const whereClause: Record<string, unknown> = {}
 
     // Role-based access control
     if (session.user.role === 'PATIENT') {

@@ -48,22 +48,6 @@ interface Claim {
   description: string
 }
 
-interface Appointment {
-  id: string
-  patientName: string
-  doctorName: string
-  appointmentDate: string
-  status: string
-  type: string
-}
-
-interface User {
-  id: string
-  name: string
-  email: string
-  role: string
-}
-
 export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -410,7 +394,7 @@ export default function DashboardPage() {
         {session.user.role === 'DOCTOR' && (
           <Card className="border-0 shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg mb-8 sm:mb-12">
             <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
-              <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Today's Appointments</CardTitle>
+              <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Today&apos;s Appointments</CardTitle>
               <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
                 Your accepted appointments for today that can be marked as consulted
               </CardDescription>
@@ -525,7 +509,7 @@ export default function DashboardPage() {
             <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
               <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Patients</CardTitle>
               <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
-                Patients you've seen recently who may need follow-up
+                Patients you&apos;ve seen recently who may need follow-up
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0 sm:p-6">
@@ -798,7 +782,7 @@ export default function DashboardPage() {
                       No upcoming appointments
                     </h3>
                     <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 max-w-md mx-auto">
-                      You don't have any confirmed appointments scheduled for the future.
+                      You don&apos;t have any confirmed appointments scheduled for the future.
                     </p>
                   </div>
                 ) : (
@@ -945,7 +929,7 @@ export default function DashboardPage() {
                   </div>
                   <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">No claims found</h3>
                   <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4 sm:mb-6 max-w-md mx-auto">
-                    You haven't submitted any claims yet. Create your first claim to get started.
+                    You haven&apos;t submitted any claims yet. Create your first claim to get started.
                   </p>
                   <Link href="/claims/new">
                     <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
@@ -1028,7 +1012,7 @@ export default function DashboardPage() {
                   </div>
                   <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">No appointments found</h3>
                   <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4 sm:mb-6 max-w-md mx-auto">
-                    You haven't booked any appointments yet. Schedule your first appointment with a doctor.
+                    You haven&apos;t booked any appointments yet. Schedule your first appointment with a doctor.
                   </p>
                   <Button 
                     onClick={() => setIsAppointmentModalOpen(true)}
@@ -1121,7 +1105,7 @@ export default function DashboardPage() {
                   </div>
                   <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No appointments found</h3>
                   <p className="text-gray-500 dark:text-gray-400 mb-6">
-                    You haven't booked any appointments yet.
+                    You haven&apos;t booked any appointments yet.
                   </p>
                   <Button 
                     onClick={() => setIsAppointmentModalOpen(true)}
@@ -1279,7 +1263,7 @@ export default function DashboardPage() {
                   </div>
                   <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No claims found</h3>
                   <p className="text-gray-500 dark:text-gray-400 mb-6">
-                    You haven't submitted any claims yet.
+                    You haven&apos;t submitted any claims yet.
                   </p>
                   <Button 
                     onClick={() => setIsNewClaimModalOpen(true)}

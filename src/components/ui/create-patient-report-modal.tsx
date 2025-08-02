@@ -2,13 +2,13 @@
 
 import { useState, useRef } from 'react'
 import { useSession } from 'next-auth/react'
+import Image from 'next/image'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { useCreatePatientReport } from '@/hooks/use-patient-reports'
@@ -627,9 +627,11 @@ export function CreatePatientReportModal({
                           <div className="flex-shrink-0">
                             {uploadFile.preview ? (
                               <div className="relative group">
-                                <img
+                                <Image
                                   src={uploadFile.preview}
                                   alt="Preview"
+                                  width={48}
+                                  height={48}
                                   className="w-12 h-12 object-cover rounded-lg border-2 border-white dark:border-slate-500 shadow-sm"
                                 />
                                 <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-all duration-200 flex items-center justify-center">

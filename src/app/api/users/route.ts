@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     const role = searchParams.get('role') as UserRole | null
     const search = searchParams.get('search')
 
-    let whereClause: any = {}
+    const whereClause: any = {}
 
     if (role) {
       whereClause.role = role

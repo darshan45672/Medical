@@ -9,7 +9,7 @@ export async function GET() {
   }
 
   const missingVars = Object.entries(config)
-    .filter(([key, value]) => !value)
+    .filter(([, value]) => !value)
     .map(([key]) => key)
 
   return NextResponse.json({

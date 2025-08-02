@@ -46,11 +46,11 @@ export default function SignInPage() {
           description: 'You have been signed in successfully. Redirecting to dashboard...',
           duration: 3000,
         })
-        const session = await getSession()
+        await getSession()
         router.push('/dashboard')
         router.refresh()
       }
-    } catch (error) {
+    } catch {
       toast.error('Connection Error', {
         description: 'Unable to connect to the server. Please check your internet connection.',
         duration: 5000,
@@ -151,7 +151,7 @@ export default function SignInPage() {
 
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                Don't have an account?{' '}
+                Don&apos;t have an account?{' '}
                 <Link 
                   href="/auth/signup" 
                   className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"

@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { Claim, ClaimStatus, DocumentType } from '@prisma/client'
+import { Claim, DocumentType } from '@prisma/client'
 
 interface ClaimFormData {
   diagnosis: string

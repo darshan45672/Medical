@@ -1,8 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { StatusBadge } from '@/components/ui/status-badge'
-import { Badge } from '@/components/ui/badge'
 import { useUpdateClaim, useDeleteClaim } from '@/hooks/use-claims'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { 
@@ -10,7 +9,6 @@ import {
   User, 
   Building2, 
   CalendarDays, 
-  DollarSign,
   Stethoscope,
   Edit,
   Trash2,
@@ -49,7 +47,7 @@ export function ClaimDetailsModal({ open, onOpenChange, claim }: ClaimDetailsMod
         await deleteClaimMutation.mutateAsync(claim.id)
         toast.success('Claim deleted successfully')
         onOpenChange(false)
-      } catch (error) {
+      } catch {
         toast.error('Failed to delete claim')
       }
     }

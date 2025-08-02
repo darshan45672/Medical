@@ -102,7 +102,7 @@ export function AttachReportsToClaimModal({
                 <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No Reports Available</h3>
                 <p className="text-gray-500">
-                  You don't have any medical reports that can be attached to this claim.
+                  You don&apos;t have any medical reports that can be attached to this claim.
                   Medical reports are created by your doctors during appointments.
                 </p>
               </div>

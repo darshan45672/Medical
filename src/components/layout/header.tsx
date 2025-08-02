@@ -8,7 +8,6 @@ import {
   Bell, 
   User, 
   LogOut, 
-  Settings,
   FileText,
   Users,
   DollarSign,
