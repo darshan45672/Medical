@@ -192,7 +192,7 @@ export default function DashboardPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12">
-          <Card className="border-0 shadow-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+          <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
               <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Claims</CardTitle>
               <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
@@ -205,7 +205,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+          <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
               <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Approved</CardTitle>
               <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded-lg">
@@ -218,7 +218,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+          <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
               <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Pending</CardTitle>
               <div className="p-2 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg">
@@ -231,7 +231,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+          <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
               <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Amount</CardTitle>
               <div className="p-2 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
@@ -273,7 +273,7 @@ export default function DashboardPage() {
                 <Button 
                   onClick={() => router.push('/patient-appointments')}
                   variant="outline" 
-                  className="w-full sm:w-auto border-green-300 dark:border-green-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-green-50 dark:hover:bg-green-950/20 hover:border-green-400 dark:hover:border-green-500 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+                  className="w-full sm:w-auto border-green-300 dark:border-green-600 bg-white dark:bg-slate-800 hover:bg-green-50 dark:hover:bg-green-950/20 hover:border-green-400 dark:hover:border-green-500 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
                 >
                   <CalendarCheck className="h-4 w-4 mr-2" />
                   My Appointments
@@ -282,7 +282,7 @@ export default function DashboardPage() {
                 <Button 
                   onClick={() => router.push('/claims')}
                   variant="outline" 
-                  className="w-full sm:w-auto border-gray-300 dark:border-slate-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+                  className="w-full sm:w-auto border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
                 >
                   <FileText className="h-4 w-4 mr-2" />
                   View All Claims
@@ -292,7 +292,7 @@ export default function DashboardPage() {
 
             {(session.user.role === UserRole.INSURANCE || session.user.role === UserRole.BANK) && (
               <Link href="/users">
-                <Button variant="outline" className="w-full sm:w-auto border-gray-300 dark:border-slate-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-300 hover:scale-[1.02] cursor-pointer">
+                <Button variant="outline" className="w-full sm:w-auto border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-300 hover:scale-[1.02] cursor-pointer">
                   <Users className="h-4 w-4 mr-2" />
                   Manage Users
                 </Button>
@@ -309,7 +309,7 @@ export default function DashboardPage() {
                 </Link>
                 
                 <Link href="/patients">
-                  <Button variant="outline" className="w-full sm:w-auto border-blue-300 dark:border-blue-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-blue-50 dark:hover:bg-blue-950/20 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 hover:scale-[1.02] cursor-pointer">
+                  <Button variant="outline" className="w-full sm:w-auto border-blue-300 dark:border-blue-600 bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/20 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 hover:scale-[1.02] cursor-pointer">
                     <Users className="h-4 w-4 mr-2" />
                     View Patients
                   </Button>
@@ -332,7 +332,7 @@ export default function DashboardPage() {
                     }
                   }}
                   variant="outline" 
-                  className="w-full sm:w-auto border-amber-300 dark:border-amber-600 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg hover:bg-amber-50 dark:hover:bg-amber-950/20 hover:border-amber-400 dark:hover:border-amber-500 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+                  className="w-full sm:w-auto border-amber-300 dark:border-amber-600 bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-amber-950/20 hover:border-amber-400 dark:hover:border-amber-500 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
                   disabled={isLoadingAllAppointments}
                 >
                   <Calendar className="h-4 w-4 mr-2" />
@@ -353,7 +353,7 @@ export default function DashboardPage() {
         {/* Patient Recent Claims and Appointments */}
         {session.user.role === UserRole.PATIENT && (
           <>
-            <Card className="border-0 shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg mb-8 sm:mb-12">
+            <Card className="border-0 shadow-2xl bg-white dark:bg-slate-800 mb-8 sm:mb-12">
               <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
                 <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Claims</CardTitle>
                 <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
@@ -422,7 +422,7 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg">
+            <Card className="border-0 shadow-2xl bg-white dark:bg-slate-800">
               <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
                 <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Appointments</CardTitle>
                 <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">

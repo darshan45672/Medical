@@ -5,8 +5,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { useCreateClaim } from '@/hooks/use-claims'
 import { useAppointments } from '@/hooks/use-appointments'
+import { usePatientReports, useAttachReportToClaim } from '@/hooks/use-patient-reports'
+import { useSession } from 'next-auth/react'
 import { formatDate } from '@/lib/utils'
 import { 
   FileText, 
@@ -14,9 +18,11 @@ import {
   Calendar,
   DollarSign,
   Stethoscope,
-  AlertTriangle
+  AlertTriangle,
+  CheckCircle,
+  FileCheck
 } from 'lucide-react'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { toast } from 'sonner'
 
 interface Appointment {
@@ -37,8 +43,16 @@ interface NewClaimModalProps {
 }
 
 export function NewClaimModal({ open, onOpenChange }: NewClaimModalProps) {
+  const { data: session } = useSession()
   const createClaimMutation = useCreateClaim()
+  const attachReportMutation = useAttachReportToClaim()
   const { data: appointmentsData } = useAppointments()
+  
+  // Fetch patient reports for the current user
+  const { data: reportsData, isLoading: reportsLoading } = usePatientReports({
+    patientId: session?.user?.id,
+    isActive: true
+  })
   
   const [formData, setFormData] = useState({
     doctorId: '',
@@ -48,6 +62,27 @@ export function NewClaimModal({ open, onOpenChange }: NewClaimModalProps) {
     claimAmount: '',
     description: ''
   })
+
+  const [selectedReport, setSelectedReport] = useState<string>('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [hasAutoSelected, setHasAutoSelected] = useState(false)
+
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!open) {
+      setFormData({
+        doctorId: '',
+        appointmentId: '',
+        diagnosis: '',
+        treatmentDate: '',
+        claimAmount: '',
+        description: ''
+      })
+      setSelectedReport('')
+      setIsSubmitting(false)
+      setHasAutoSelected(false) // Reset auto-selection flag
+    }
+  }, [open])
 
   // Get completed appointments for claim creation
   const completedAppointments = useMemo(() => {
@@ -76,6 +111,20 @@ export function NewClaimModal({ open, onOpenChange }: NewClaimModalProps) {
     return completedAppointments.filter((apt: Appointment) => apt.doctorId === formData.doctorId)
   }, [formData.doctorId, completedAppointments])
 
+  // Auto-select report if there's only one available
+  useEffect(() => {
+    // Only proceed if modal is open, user is defined, reports are loaded, and we haven't auto-selected yet
+    if (!open || !session?.user?.id || reportsLoading || hasAutoSelected) return
+    
+    const reports = reportsData?.reports || []
+    
+    // Auto-select if exactly one report exists and no report is currently selected
+    if (reports.length === 1 && !selectedReport) {
+      setSelectedReport(reports[0].id)
+      setHasAutoSelected(true)
+    }
+  }, [open, session?.user?.id, reportsLoading, reportsData?.reports, hasAutoSelected, selectedReport])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -83,6 +132,13 @@ export function NewClaimModal({ open, onOpenChange }: NewClaimModalProps) {
       toast.error('Please fill in all required fields')
       return
     }
+
+    if (!selectedReport) {
+      toast.error('Please select a report for your claim')
+      return
+    }
+
+    setIsSubmitting(true)
 
     try {
       const claimData = {
@@ -93,8 +149,16 @@ export function NewClaimModal({ open, onOpenChange }: NewClaimModalProps) {
         description: formData.description
       }
 
-      await createClaimMutation.mutateAsync(claimData)
-      toast.success('Claim created successfully')
+      // Create the claim first
+      const createdClaim = await createClaimMutation.mutateAsync(claimData)
+      
+      // Attach selected report to the claim
+      await attachReportMutation.mutateAsync({
+        claimId: createdClaim.id,
+        reportId: selectedReport
+      })
+      
+      toast.success('Claim created successfully with report attached')
       onOpenChange(false)
       
       // Reset form
@@ -106,21 +170,29 @@ export function NewClaimModal({ open, onOpenChange }: NewClaimModalProps) {
         claimAmount: '',
         description: ''
       })
-    } catch {
+      setSelectedReport('')
+    } catch (error) {
+      console.error('Error creating claim:', error)
       toast.error('Failed to create claim')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
-  const handleDoctorChange = (doctorId: string) => {
+  const handleDoctorChange = useCallback((doctorId: string) => {
     setFormData(prev => ({
       ...prev,
       doctorId,
       appointmentId: '', // Reset appointment selection
       treatmentDate: '' // Reset treatment date
     }))
-  }
+  }, [])
 
-  const handleAppointmentChange = (appointmentId: string) => {
+  const handleReportSelect = useCallback((reportId: string) => {
+    setSelectedReport(prev => prev === reportId ? '' : reportId)
+  }, [])
+
+  const handleAppointmentChange = useCallback((appointmentId: string) => {
     const selectedAppointment = doctorAppointments.find((apt: Appointment) => apt.id === appointmentId)
     if (selectedAppointment) {
       setFormData(prev => ({
@@ -129,7 +201,7 @@ export function NewClaimModal({ open, onOpenChange }: NewClaimModalProps) {
         treatmentDate: new Date(selectedAppointment.scheduledAt).toISOString().split('T')[0]
       }))
     }
-  }
+  }, [doctorAppointments])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -251,18 +323,27 @@ export function NewClaimModal({ open, onOpenChange }: NewClaimModalProps) {
                     />
                   </div>
 
-                  <div>
-                    <Label htmlFor="treatmentDate" className="text-sm font-medium">
+                  <div className="space-y-3">
+                    <Label htmlFor="treatmentDate" className="text-sm font-semibold flex items-center gap-2 text-gray-800 dark:text-gray-200">
+                      <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-md">
+                        <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      </div>
                       Treatment Date *
                     </Label>
-                    <Input
-                      id="treatmentDate"
-                      type="date"
-                      value={formData.treatmentDate}
-                      onChange={(e) => setFormData(prev => ({ ...prev, treatmentDate: e.target.value }))}
-                      className="mt-1"
-                      required
-                    />
+                    <div className="relative">
+                      <Input
+                        id="treatmentDate"
+                        type="date"
+                        value={formData.treatmentDate}
+                        onChange={(e) => setFormData(prev => ({ ...prev, treatmentDate: e.target.value }))}
+                        max={new Date().toISOString().split('T')[0]} // Can't be in the future
+                        className="h-12 pl-4 pr-4 border-2 border-gray-300 dark:border-slate-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-slate-800 rounded-lg shadow-sm font-medium"
+                        required
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Select the date when you received treatment
+                    </p>
                   </div>
 
                   <div>
@@ -283,6 +364,125 @@ export function NewClaimModal({ open, onOpenChange }: NewClaimModalProps) {
                         required
                       />
                     </div>
+                  </div>
+
+                  {/* Reports Selection Section */}
+                  <div className="space-y-4">
+                    <Label className="text-sm font-semibold flex items-center gap-2 text-gray-800 dark:text-gray-200">
+                      <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-md">
+                        <FileCheck className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                      </div>
+                      Select Reports for Claim *
+                    </Label>
+                    
+                    {reportsLoading ? (
+                      <div className="flex items-center justify-center py-8">
+                        <LoadingSpinner />
+                        <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">Loading your reports...</span>
+                      </div>
+                    ) : (
+                      <>
+                        {reportsData?.reports && reportsData.reports.length > 0 ? (
+                          <div className="space-y-3">
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {reportsData.reports.length === 1 
+                                ? 'Your report has been automatically selected'
+                                : selectedReport
+                                  ? 'Report selected for this claim'
+                                  : 'Select a report to attach to this claim'
+                              }
+                            </p>
+                            
+                            <div className="grid gap-3 max-h-48 overflow-y-auto">
+                              {reportsData.reports.map((report: any) => (
+                                <div
+                                  key={report.id}
+                                  className={`relative flex items-start space-x-3 p-3 border-2 rounded-lg transition-all duration-200 cursor-pointer ${
+                                    selectedReport === report.id
+                                      ? 'border-purple-300 dark:border-purple-600 bg-purple-50 dark:bg-purple-950/20'
+                                      : 'border-gray-300 dark:border-slate-600 hover:border-purple-300 dark:hover:border-purple-600 bg-white dark:bg-slate-800'
+                                  }`}
+                                  onClick={() => handleReportSelect(report.id)}
+                                >
+                                  <input
+                                    type="radio"
+                                    name="selectedReport"
+                                    checked={selectedReport === report.id}
+                                    onChange={() => {}}
+                                    className="mt-0.5"
+                                  />
+                                  
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between">
+                                      <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                                        {report.title}
+                                      </h4>
+                                      <Badge variant="outline" className="ml-2 text-xs">
+                                        {report.reportType}
+                                      </Badge>
+                                    </div>
+                                    
+                                    {report.diagnosis && (
+                                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                        Diagnosis: {report.diagnosis}
+                                      </p>
+                                    )}
+                                    
+                                    <div className="flex items-center justify-between mt-2">
+                                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                                        Dr. {report.doctor.name}
+                                      </p>
+                                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                                        {new Date(report.createdAt).toLocaleDateString()}
+                                      </p>
+                                    </div>
+                                    
+                                    {report.description && (
+                                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
+                                        {report.description}
+                                      </p>
+                                    )}
+                                  </div>
+                                  
+                                  {selectedReport === report.id && (
+                                    <div className="absolute top-2 right-2">
+                                      <CheckCircle className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                            
+                            {selectedReport && (
+                              <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
+                                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                                <span className="text-sm text-green-700 dark:text-green-300">
+                                  Report selected for this claim
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="text-center py-8 px-4 border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-lg">
+                            <FileText className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-3" />
+                            <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">No Reports Available</h3>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                              You need to have at least one medical report to create a claim. 
+                              Please visit a doctor to get a medical report first.
+                            </p>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => onOpenChange(false)}
+                              className="text-xs"
+                            >
+                              Book Appointment
+                            </Button>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
 
                   <div>
@@ -314,24 +514,30 @@ export function NewClaimModal({ open, onOpenChange }: NewClaimModalProps) {
               Cancel
             </Button>
             
-            {completedAppointments.length > 0 && (
+            {completedAppointments.length > 0 && reportsData?.reports && reportsData.reports.length > 0 && (
               <Button
                 type="submit"
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
-                disabled={createClaimMutation.isPending}
+                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isSubmitting || createClaimMutation.isPending || !selectedReport}
               >
-                {createClaimMutation.isPending ? (
+                {isSubmitting || createClaimMutation.isPending ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Creating...
+                    {isSubmitting ? 'Attaching Report...' : 'Creating...'}
                   </>
                 ) : (
                   <>
                     <FileText className="h-4 w-4 mr-2" />
-                    Create Claim
+                    Create Claim with Report
                   </>
                 )}
               </Button>
+            )}
+            
+            {completedAppointments.length > 0 && (!reportsData?.reports || reportsData.reports.length === 0) && (
+              <div className="text-center text-sm text-gray-500 dark:text-gray-400">
+                Cannot create claim without medical reports
+              </div>
             )}
           </div>
         </form>
