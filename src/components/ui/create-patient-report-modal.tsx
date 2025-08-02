@@ -170,25 +170,44 @@ export function CreatePatientReportModal({
 
     const uploadedUrls: string[] = []
     
-    for (const uploadFile of uploadFiles) {
-      const formData = new FormData()
+    // Get selected appointment details for patient ID
+    const selectedAppointment = appointmentsData?.appointments.find((apt: Appointment) => apt.id === selectedAppointmentId)
+    
+    if (!selectedAppointment) {
+      throw new Error('Selected appointment not found')
+    }
+
+    const formData = new FormData()
+    
+    // Append all files
+    uploadFiles.forEach((uploadFile, index) => {
       formData.append('files', uploadFile.file)
-      formData.append('appointmentId', selectedAppointmentId)
-      formData.append('type', uploadFile.type)
+      formData.append(`type_${index}`, uploadFile.type)
+    })
+    
+    // Append required IDs
+    formData.append('appointmentId', selectedAppointmentId)
+    formData.append('patientId', selectedAppointment.patient.id)
 
-      const response = await fetch('/api/documents', {
-        method: 'POST',
-        body: formData,
+    const response = await fetch('/api/documents', {
+      method: 'POST',
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      console.error('Upload failed:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData
       })
+      throw new Error(errorData.error || `Upload failed with status ${response.status}`)
+    }
 
-      if (!response.ok) {
-        throw new Error(`Failed to upload ${uploadFile.file.name}`)
-      }
-
-      const result = await response.json()
-      if (result.documents && result.documents.length > 0) {
-        uploadedUrls.push(result.documents[0].url)
-      }
+    const result = await response.json()
+    if (result.documents && result.documents.length > 0) {
+      // Return all uploaded document URLs
+      return result.documents.map((doc: any) => doc.url)
     }
 
     return uploadedUrls
@@ -202,11 +221,19 @@ export function CreatePatientReportModal({
       return
     }
 
+    console.log('🚀 Starting report creation...', {
+      selectedAppointmentId,
+      uploadFiles: uploadFiles.length,
+      formData: { ...formData, description: formData.description.substring(0, 50) + '...' }
+    })
+
     setIsUploading(true)
     
     try {
       // Upload files to S3 first
       const uploadedUrls = await uploadFilesToS3()
+      
+      console.log('✅ Files uploaded successfully:', uploadedUrls.length)
       
       // Get selected appointment details
       const selectedAppointment = appointmentsData?.appointments.find((apt: Appointment) => apt.id === selectedAppointmentId)
@@ -214,6 +241,8 @@ export function CreatePatientReportModal({
       if (!selectedAppointment) {
         throw new Error('Selected appointment not found')
       }
+
+      console.log('📋 Creating report for appointment:', selectedAppointment.id)
 
       // Create the patient report
       await createReport.mutateAsync({
@@ -232,6 +261,8 @@ export function CreatePatientReportModal({
 
       toast.success('Patient report created successfully')
       
+      console.log('🎉 Report created successfully')
+      
       // Reset form
       setFormData({
         reportType: '' as ReportType,
@@ -247,6 +278,7 @@ export function CreatePatientReportModal({
       setUploadFiles([])
       onClose()
     } catch (error: unknown) {
+      console.error('❌ Report creation failed:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to create report'
       toast.error(errorMessage)
     } finally {

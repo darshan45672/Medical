@@ -17,8 +17,9 @@ import { CreatePatientReportModal } from '@/components/ui/create-patient-report-
 import { Carousel } from '@/components/ui/carousel'
 import { Header } from '@/components/layout/header'
 import { useClaims, useClaim } from '@/hooks/use-claims'
-import { useAppointments } from '@/hooks/use-appointments'
+import { useAppointments, useUpdateAppointment } from '@/hooks/use-appointments'
 import { formatCurrency, formatDate } from '@/lib/utils'
+import { toast } from 'sonner'
 import { 
   FileText, 
   Plus, 
@@ -70,6 +71,7 @@ export default function DashboardPage() {
   const { data: allClaimsData, isLoading: isLoadingAllClaims } = useClaims()
   const { data: appointmentsData, isLoading: isLoadingAppointments } = useAppointments({ limit: 10 })
   const { data: allAppointmentsData, isLoading: isLoadingAllAppointments } = useAppointments()
+  const updateAppointment = useUpdateAppointment()
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false)
   const [isNewClaimModalOpen, setIsNewClaimModalOpen] = useState(false)
   const [isCreateReportModalOpen, setIsCreateReportModalOpen] = useState(false)
@@ -133,6 +135,20 @@ export default function DashboardPage() {
   }
 
   const stats = getStats()
+
+  // Handler for updating appointment status to CONSULTED
+  const handleMarkAsConsulted = async (appointmentId: string, patientName: string) => {
+    try {
+      await updateAppointment.mutateAsync({
+        id: appointmentId,
+        data: { status: 'CONSULTED' }
+      })
+      toast.success(`Appointment with ${patientName} marked as consulted successfully!`)
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update appointment status'
+      toast.error(errorMessage)
+    }
+  }
 
   const getDashboardTitle = () => {
     switch (session.user.role) {
@@ -396,7 +412,7 @@ export default function DashboardPage() {
             <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
               <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Today's Appointments</CardTitle>
               <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
-                Your scheduled appointments for today that are not yet completed
+                Your accepted appointments for today that can be marked as consulted
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0 sm:p-6">
@@ -407,15 +423,15 @@ export default function DashboardPage() {
               ) : appointments.filter((appointment: any) => {
                 const today = new Date().toDateString()
                 const appointmentDate = new Date(appointment.scheduledAt).toDateString()
-                return appointmentDate === today && appointment.status !== 'COMPLETED'
+                return appointmentDate === today && appointment.status === 'ACCEPTED'
               }).length === 0 ? (
                 <div className="text-center py-8 sm:py-12 px-4">
                   <div className="bg-gradient-to-r from-blue-100 to-indigo-200 dark:from-blue-900 dark:to-indigo-800 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
                     <CalendarCheck className="h-8 w-8 sm:h-10 sm:w-10 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">No appointments today</h3>
+                  <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">No accepted appointments today</h3>
                   <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4 sm:mb-6 max-w-md mx-auto">
-                    You have no pending appointments scheduled for today.
+                    You have no accepted appointments scheduled for today.
                   </p>
                   <Link href="/appointments">
                     <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl">
@@ -430,7 +446,7 @@ export default function DashboardPage() {
                     {appointments.filter((appointment: any) => {
                       const today = new Date().toDateString()
                       const appointmentDate = new Date(appointment.scheduledAt).toDateString()
-                      return appointmentDate === today && appointment.status !== 'COMPLETED'
+                      return appointmentDate === today && appointment.status === 'ACCEPTED'
                     }).map((appointment: any) => (
                       <Card key={appointment.id} className="border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-lg transition-all duration-300 hover:scale-[1.02] h-full">
                         <CardContent className="p-4 h-full flex flex-col">
@@ -472,12 +488,24 @@ export default function DashboardPage() {
                                 View Details
                               </Button>
                             </Link>
-                            {appointment.status !== 'COMPLETED' && (
+                            {appointment.status === 'ACCEPTED' && (
                               <Button 
                                 size="sm" 
-                                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white disabled:from-gray-400 disabled:to-gray-500"
+                                onClick={() => handleMarkAsConsulted(appointment.id, appointment.patient?.name || 'Unknown Patient')}
+                                disabled={updateAppointment.isPending}
                               >
-                                Mark as Completed
+                                {updateAppointment.isPending ? (
+                                  <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                    Updating...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Check className="h-4 w-4 mr-2" />
+                                    Mark as Consulted
+                                  </>
+                                )}
                               </Button>
                             )}
                           </div>

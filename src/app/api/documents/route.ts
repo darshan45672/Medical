@@ -16,15 +16,27 @@ const s3Client = new S3Client({
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('📄 Starting document upload...')
+    
     const session = await getServerSession(authOptions)
     
     if (!session?.user) {
+      console.log('❌ Unauthorized access attempt')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Only doctors can upload medical reports
     if (session.user.role !== 'DOCTOR') {
+      console.log(`❌ Access denied for role: ${session.user.role}`)
       return NextResponse.json({ error: 'Only doctors can upload medical reports' }, { status: 403 })
+    }
+
+    console.log(`✅ Doctor authenticated: ${session.user.id}`)
+
+    // Validate AWS configuration
+    if (!process.env.AWS_S3_BUCKET || !process.env.AWS_REGION || !process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+      console.log('❌ AWS configuration missing')
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
     }
 
     const formData = await request.formData()
@@ -32,11 +44,15 @@ export async function POST(request: NextRequest) {
     const appointmentId = formData.get('appointmentId') as string
     const patientId = formData.get('patientId') as string
 
+    console.log(`📋 Upload request - Appointment: ${appointmentId}, Patient: ${patientId}, Files: ${files.length}`)
+
     if (!files || files.length === 0) {
+      console.log('❌ No files provided')
       return NextResponse.json({ error: 'No files provided' }, { status: 400 })
     }
 
     if (!appointmentId || !patientId) {
+      console.log('❌ Missing appointment ID or patient ID')
       return NextResponse.json({ error: 'Appointment ID and Patient ID are required' }, { status: 400 })
     }
 
@@ -46,15 +62,18 @@ export async function POST(request: NextRequest) {
         id: appointmentId,
         doctorId: session.user.id,
         patientId: patientId,
-        status: 'ACCEPTED'
+        status: { in: ['ACCEPTED', 'CONSULTED'] }
       }
     })
 
     if (!appointment) {
+      console.log(`❌ Appointment not found or unauthorized - ID: ${appointmentId}, Doctor: ${session.user.id}`)
       return NextResponse.json({ 
         error: 'Appointment not found or you do not have permission to upload documents for this appointment' 
       }, { status: 404 })
     }
+
+    console.log(`✅ Appointment verified: ${appointment.id} (${appointment.status})`)
 
     const uploadedDocuments = []
 
@@ -62,7 +81,10 @@ export async function POST(request: NextRequest) {
       const file = files[i]
       const documentType = formData.get(`type_${i}`) as DocumentType
 
+      console.log(`📎 Processing file ${i + 1}/${files.length}: ${file.name} (${file.type}, ${file.size} bytes)`)
+
       if (!documentType || !Object.values(DocumentType).includes(documentType)) {
+        console.log(`❌ Invalid document type for file ${file.name}: ${documentType}`)
         return NextResponse.json({ 
           error: `Invalid document type for file ${file.name}` 
         }, { status: 400 })
@@ -70,6 +92,7 @@ export async function POST(request: NextRequest) {
 
       // Validate file size (10MB limit)
       if (file.size > 10 * 1024 * 1024) {
+        console.log(`❌ File too large: ${file.name} (${file.size} bytes)`)
         return NextResponse.json({ 
           error: `File ${file.name} exceeds 10MB limit` 
         }, { status: 400 })
@@ -85,6 +108,7 @@ export async function POST(request: NextRequest) {
       ]
 
       if (!allowedTypes.includes(file.type)) {
+        console.log(`❌ Invalid file type: ${file.name} (${file.type})`)
         return NextResponse.json({ 
           error: `File type ${file.type} is not allowed for file ${file.name}` 
         }, { status: 400 })
@@ -94,6 +118,8 @@ export async function POST(request: NextRequest) {
       const fileExtension = file.name.split('.').pop()
       const uniqueFilename = `${crypto.randomUUID()}.${fileExtension}`
       const s3Key = `medical-reports/${appointmentId}/${uniqueFilename}`
+
+      console.log(`🚀 Uploading to S3: ${s3Key}`)
 
       // Convert file to buffer
       const arrayBuffer = await file.arrayBuffer()
@@ -113,41 +139,55 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      await s3Client.send(uploadCommand)
+      try {
+        await s3Client.send(uploadCommand)
+        console.log(`✅ Successfully uploaded to S3: ${s3Key}`)
+      } catch (s3Error) {
+        console.error(`❌ S3 upload failed for ${file.name}:`, s3Error)
+        throw new Error(`Failed to upload ${file.name} to cloud storage`)
+      }
 
       // Generate S3 URL
       const fileUrl = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`
 
       // Save document record to database
-      const document = await prisma.document.create({
-        data: {
-          appointmentId,
-          type: documentType,
-          filename: uniqueFilename,
-          originalName: file.name,
-          url: fileUrl,
-          size: file.size,
-          mimeType: file.type,
-          uploadedById: session.user.id,
-        },
-        include: {
-          uploadedBy: {
-            select: { id: true, name: true, email: true }
+      try {
+        const document = await prisma.document.create({
+          data: {
+            appointmentId,
+            type: documentType,
+            filename: uniqueFilename,
+            originalName: file.name,
+            url: fileUrl,
+            size: file.size,
+            mimeType: file.type,
+            uploadedById: session.user.id,
           },
-          appointment: {
-            select: { 
-              id: true, 
-              scheduledAt: true,
-              patient: {
-                select: { id: true, name: true, email: true }
+          include: {
+            uploadedBy: {
+              select: { id: true, name: true, email: true }
+            },
+            appointment: {
+              select: { 
+                id: true, 
+                scheduledAt: true,
+                patient: {
+                  select: { id: true, name: true, email: true }
+                }
               }
             }
           }
-        }
-      })
+        })
 
-      uploadedDocuments.push(document)
+        uploadedDocuments.push(document)
+        console.log(`✅ Document record saved: ${document.id}`)
+      } catch (dbError) {
+        console.error(`❌ Database save failed for ${file.name}:`, dbError)
+        throw new Error(`Failed to save document record for ${file.name}`)
+      }
     }
+
+    console.log(`🎉 Upload complete: ${uploadedDocuments.length} documents uploaded`)
 
     return NextResponse.json({
       message: `Successfully uploaded ${uploadedDocuments.length} document(s)`,
@@ -155,7 +195,15 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error uploading documents:', error)
+    console.error('❌ Error uploading documents:', error)
+    
+    // Provide more specific error messages
+    if (error instanceof Error) {
+      return NextResponse.json({ 
+        error: error.message
+      }, { status: 500 })
+    }
+    
     return NextResponse.json({ 
       error: 'Internal server error during file upload' 
     }, { status: 500 })
