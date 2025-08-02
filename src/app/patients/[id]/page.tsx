@@ -109,17 +109,33 @@ export default function PatientPage({ params }: PatientPageProps) {
     }
   }
 
-  const handleDownloadReport = async (reportId: string, fileName: string) => {
+  const handleDownloadReport = async (report: any) => {
     try {
-      setDownloadingReport(reportId)
-      const response = await fetch(`/api/reports/${reportId}/download`)
+      setDownloadingReport(report.id)
+      
+      // Check if we have a direct S3 URL
+      if (report.fileUrl && report.fileUrl.includes('amazonaws.com')) {
+        // Use direct S3 URL
+        const link = document.createElement('a')
+        link.href = report.fileUrl
+        link.download = report.fileName || `report_${report.id}.pdf`
+        link.target = '_blank'
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+        toast.success('Report download started')
+        return
+      }
+      
+      // Fallback to API endpoint
+      const response = await fetch(`/api/reports/${report.id}/download`)
       
       if (response.ok) {
         const blob = await response.blob()
         const url = window.URL.createObjectURL(blob)
         const link = document.createElement('a')
         link.href = url
-        link.download = fileName
+        link.download = report.fileName || `report_${report.id}.pdf`
         document.body.appendChild(link)
         link.click()
         link.remove()
@@ -136,9 +152,17 @@ export default function PatientPage({ params }: PatientPageProps) {
     }
   }
 
-  const handleViewReport = async (reportId: string) => {
+  const handleViewReport = async (report: any) => {
     try {
-      const response = await fetch(`/api/reports/${reportId}/view`)
+      // Check if we have a direct S3 URL
+      if (report.fileUrl && report.fileUrl.includes('amazonaws.com')) {
+        // Open S3 URL directly in new tab
+        window.open(report.fileUrl, '_blank')
+        return
+      }
+      
+      // Fallback to API endpoint for blob generation
+      const response = await fetch(`/api/reports/${report.id}/view`)
       if (response.ok) {
         const blob = await response.blob()
         const url = window.URL.createObjectURL(blob)
@@ -592,7 +616,7 @@ export default function PatientPage({ params }: PatientPageProps) {
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    onClick={() => handleViewReport(report.id)}
+                                    onClick={() => handleViewReport(report)}
                                     className="cursor-pointer"
                                   >
                                     <Eye className="h-4 w-4 mr-1" />
@@ -602,7 +626,7 @@ export default function PatientPage({ params }: PatientPageProps) {
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      onClick={() => handleDownloadReport(report.id, report.fileName!)}
+                                      onClick={() => handleDownloadReport(report)}
                                       disabled={downloadingReport === report.id}
                                       className="cursor-pointer"
                                     >
@@ -656,7 +680,7 @@ export default function PatientPage({ params }: PatientPageProps) {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleViewReport(report.id)}
+                                onClick={() => handleViewReport(report)}
                                 className="flex-1 cursor-pointer"
                               >
                                 <Eye className="h-4 w-4 mr-1" />
@@ -666,7 +690,7 @@ export default function PatientPage({ params }: PatientPageProps) {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => handleDownloadReport(report.id, report.fileName!)}
+                                  onClick={() => handleDownloadReport(report)}
                                   disabled={downloadingReport === report.id}
                                   className="flex-1 cursor-pointer"
                                 >
