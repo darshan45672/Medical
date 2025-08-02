@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { useSession } from 'next-auth/react'
+import { useQueryClient } from '@tanstack/react-query'
 import Image from 'next/image'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -102,13 +103,14 @@ export function CreatePatientReportModal({
   onClose
 }: CreatePatientReportModalProps) {
   const { data: session } = useSession()
+  const queryClient = useQueryClient()
   const createReport = useCreatePatientReport()
   const fileInputRef = useRef<HTMLInputElement>(null)
   
-  // Fetch consulted appointments for the doctor
+  // Fetch accepted appointments for the doctor (ready for reports)
   const { data: appointmentsData, isLoading: appointmentsLoading } = useAppointments({
     doctorId: session?.user?.id,
-    status: AppointmentStatus.CONSULTED,
+    status: AppointmentStatus.ACCEPTED,
     limit: 50
   })
   
@@ -259,9 +261,12 @@ export function CreatePatientReportModal({
         documentUrl: uploadedUrls.length > 0 ? uploadedUrls[0] : undefined, // Store first uploaded file URL
       })
 
-      toast.success('Patient report created successfully')
+      // Invalidate appointments cache to reflect the status change
+      queryClient.invalidateQueries({ queryKey: ['appointments'] })
+
+      toast.success('Patient report created successfully! Appointment marked as completed.')
       
-      console.log('🎉 Report created successfully')
+      console.log('🎉 Report created successfully and appointment marked as completed')
       
       // Reset form
       setFormData({
@@ -332,7 +337,7 @@ export function CreatePatientReportModal({
                   </Label>
                   <Select value={selectedAppointmentId} onValueChange={setSelectedAppointmentId}>
                     <SelectTrigger className="mt-3 h-12 border-gray-300 dark:border-slate-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors text-gray-900 dark:text-gray-100">
-                      <SelectValue placeholder="🔍 Choose a consulted appointment" />
+                      <SelectValue placeholder="🔍 Choose an accepted appointment" />
                     </SelectTrigger>
                     <SelectContent className="max-h-60 border-gray-300 dark:border-slate-600 shadow-xl bg-white dark:bg-slate-800">
                       {appointmentsData?.appointments.map((appointment: Appointment) => (

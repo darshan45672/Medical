@@ -177,6 +177,16 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    // Update appointment status to COMPLETED when a report is created
+    if (appointmentId) {
+      await prisma.appointment.update({
+        where: { id: appointmentId },
+        data: { status: 'COMPLETED' },
+      })
+      
+      console.log(`✅ Appointment ${appointmentId} marked as COMPLETED after report creation`)
+    }
+
     return NextResponse.json(report, { status: 201 })
   } catch (error) {
     console.error('Error creating patient report:', error)

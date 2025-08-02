@@ -62,6 +62,26 @@ export default function DashboardPage() {
     }
   }, [status, router])
 
+  // Function to scroll to appointment requests section
+  const scrollToAppointmentRequests = () => {
+    const appointmentRequestsSection = document.getElementById('appointment-requests-section')
+    if (appointmentRequestsSection) {
+      // Add a brief highlight effect
+      appointmentRequestsSection.classList.add('ring-2', 'ring-amber-400', 'ring-opacity-75')
+      
+      appointmentRequestsSection.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start',
+        inline: 'nearest'
+      })
+      
+      // Remove the highlight effect after 2 seconds
+      setTimeout(() => {
+        appointmentRequestsSection.classList.remove('ring-2', 'ring-amber-400', 'ring-opacity-75')
+      }, 2000)
+    }
+  }
+
   if (status === 'loading') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950">
@@ -326,11 +346,10 @@ export default function DashboardPage() {
                 
                 <Button 
                   onClick={() => {
-                    if (!isAppointmentManagementOpen) {
-                      setIsAppointmentManagementOpen(true)
-                    } else {
-                      setIsAppointmentManagementOpen(false)
-                    }
+                    // Always scroll to appointment requests section
+                    scrollToAppointmentRequests()
+                    // Toggle the management state for visual feedback
+                    setIsAppointmentManagementOpen(!isAppointmentManagementOpen)
                   }}
                   variant="outline" 
                   className="w-full sm:w-auto border-amber-300 dark:border-amber-600 bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-amber-950/20 hover:border-amber-400 dark:hover:border-amber-500 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
@@ -514,7 +533,7 @@ export default function DashboardPage() {
             </Card>
 
             {/* Appointment Requests Management */}
-            <Card className="border-0 shadow-2xl bg-white dark:bg-slate-800 mb-8 sm:mb-12">
+            <Card id="appointment-requests-section" className="border-0 shadow-2xl bg-white dark:bg-slate-800 mb-8 sm:mb-12 transition-all duration-500 rounded-lg">
               <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
                 <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Appointment Requests</CardTitle>
                 <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
