@@ -1,60 +1,66 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
-interface Notification {
+type NotificationType = 'success' | 'error' | 'info' | 'warning'
+
+type Notification = {
   id: string
   title: string
   message: string
-  type: 'success' | 'error' | 'warning' | 'info'
-  timestamp: Date
-  read: boolean
+  type: NotificationType
+  timestamp: string
+  read?: boolean
+  priority?: 'low' | 'medium' | 'high'
+  category?: 'claim' | 'payment' | 'document' | 'system' | 'general'
 }
 
-interface NotificationState {
+type NotificationState = {
   notifications: Notification[]
-  
-  // Actions
-  addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void
+  addNotification: (notif: Omit<Notification, 'id' | 'timestamp'>) => void
+  removeNotification: (id: string) => void
   markAsRead: (id: string) => void
   markAllAsRead: () => void
-  removeNotification: (id: string) => void
   clearNotifications: () => void
+  getUnreadCount: () => number
 }
 
-export const useNotificationStore = create<NotificationState>((set) => ({
-  notifications: [],
-
-  addNotification: (notification) =>
-    set((state) => ({
-      notifications: [
-        {
-          ...notification,
-          id: Math.random().toString(36).substring(7),
-          timestamp: new Date(),
+export const useNotificationStore = create<NotificationState>()(
+  persist(
+    (set, get) => ({
+      notifications: [],
+      addNotification: (notif) => {
+        const newNotification: Notification = {
+          ...notif,
+          id: crypto.randomUUID(),
+          timestamp: new Date().toISOString(),
           read: false,
-        },
-        ...state.notifications,
-      ],
-    })),
-
-  markAsRead: (id) =>
-    set((state) => ({
-      notifications: state.notifications.map((notif) =>
-        notif.id === id ? { ...notif, read: true } : notif
-      ),
-    })),
-
-  markAllAsRead: () =>
-    set((state) => ({
-      notifications: state.notifications.map((notif) => ({
-        ...notif,
-        read: true,
-      })),
-    })),
-
-  removeNotification: (id) =>
-    set((state) => ({
-      notifications: state.notifications.filter((notif) => notif.id !== id),
-    })),
-
-  clearNotifications: () => set({ notifications: [] }),
-}))
+        }
+        set((state) => ({
+          notifications: [newNotification, ...state.notifications.slice(0, 49)], // Keep max 50 notifications
+        }))
+      },
+      removeNotification: (id) =>
+        set((state) => ({
+          notifications: state.notifications.filter((n) => n.id !== id),
+        })),
+      markAsRead: (id) =>
+        set((state) => ({
+          notifications: state.notifications.map((n) =>
+            n.id === id ? { ...n, read: true } : n
+          ),
+        })),
+      markAllAsRead: () =>
+        set((state) => ({
+          notifications: state.notifications.map((n) => ({ ...n, read: true })),
+        })),
+      clearNotifications: () => set({ notifications: [] }),
+      getUnreadCount: () => {
+        const state = get()
+        return state.notifications.filter((n) => !n.read).length
+      },
+    }),
+    {
+      name: 'notification-storage',
+    }
+  )
+)

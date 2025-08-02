@@ -6,7 +6,6 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('Seeding database...')
 
-  // Hash password for demo accounts
   const hashedPassword = await bcrypt.hash('password123', 12)
 
   // Create demo users
@@ -36,7 +35,7 @@ async function main() {
     },
   })
 
-  const insurance = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: 'insurance@demo.com' },
     update: {},
     create: {
@@ -49,7 +48,7 @@ async function main() {
     },
   })
 
-  const bank = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: 'bank@demo.com' },
     update: {},
     create: {
@@ -62,67 +61,69 @@ async function main() {
     },
   })
 
-  // Create some sample claims
-  const claim1 = await prisma.claim.create({
+  // Create an appointment and mark it as accepted
+  const appointment = await prisma.appointment.create({
     data: {
-      claimNumber: 'CLM-001-DEMO',
       patientId: patient.id,
       doctorId: doctor.id,
-      diagnosis: 'Annual Health Checkup',
-      treatmentDate: new Date('2024-01-15'),
-      claimAmount: 250.00,
-      description: 'Routine annual physical examination including blood work and basic screening tests.',
+      scheduledAt: new Date('2024-01-10T10:00:00'),
+      status: 'ACCEPTED',
+      notes: 'General checkup appointment',
+    },
+  })
+
+  // Doctor uploads a medical report for the appointment
+  const report = await prisma.document.create({
+    data: {
+      type: 'MEDICAL_REPORT',
+      filename: 'checkup_report_jan.pdf',
+      originalName: 'Checkup_Report_Jan.pdf',
+      url: 'https://example.com/reports/checkup_report_jan.pdf',
+      size: 234567,
+      mimeType: 'application/pdf',
+      appointmentId: appointment.id,
+      uploadedById: doctor.id,
+    },
+  })
+
+  // Create a claim by the patient for this report
+  const claim = await prisma.claim.create({
+    data: {
+      claimNumber: 'CLM-004-DEMO',
+      patientId: patient.id,
+      doctorId: doctor.id,
+      diagnosis: 'General Health Check',
+      treatmentDate: new Date('2024-01-10'),
+      claimAmount: 300.0,
+      description: 'General health checkup, blood tests, and consultation.',
       status: 'APPROVED',
-      approvedAmount: 225.00,
-      submittedAt: new Date('2024-01-16'),
-      approvedAt: new Date('2024-01-18'),
+      approvedAmount: 275.0,
+      submittedAt: new Date('2024-01-11'),
+      approvedAt: new Date('2024-01-13'),
+      documents: {
+        connect: { id: report.id }, // Link the uploaded report to the claim
+      },
     },
   })
 
-  const claim2 = await prisma.claim.create({
-    data: {
-      claimNumber: 'CLM-002-DEMO',
-      patientId: patient.id,
-      doctorId: doctor.id,
-      diagnosis: 'Flu Treatment',
-      treatmentDate: new Date('2024-02-10'),
-      claimAmount: 150.00,
-      description: 'Treatment for seasonal flu including consultation and prescribed medication.',
-      status: 'UNDER_REVIEW',
-      submittedAt: new Date('2024-02-11'),
-    },
-  })
-
-  const claim3 = await prisma.claim.create({
-    data: {
-      claimNumber: 'CLM-003-DEMO',
-      patientId: patient.id,
-      diagnosis: 'Dental Cleaning',
-      treatmentDate: new Date('2024-03-05'),
-      claimAmount: 120.00,
-      description: 'Routine dental cleaning and oral examination.',
-      status: 'DRAFT',
-    },
-  })
-
-  // Create a payment for the approved claim
+  // Payment by bank for approved claim
   await prisma.payment.create({
     data: {
-      claimId: claim1.id,
-      amount: 225.00,
-      paymentDate: new Date('2024-01-20'),
-      paymentMethod: 'Direct Deposit',
-      transactionId: 'TXN-001-DEMO',
-      notes: 'Payment processed successfully',
+      claimId: claim.id,
+      amount: 275.0,
+      paymentDate: new Date('2024-01-15'),
+      paymentMethod: 'Bank Transfer',
+      transactionId: 'TXN-004-DEMO',
+      notes: 'Reimbursement to patient via direct deposit.',
     },
   })
 
-  console.log('Database seeded successfully!')
-  console.log('Demo accounts created:')
-  console.log('- Patient: patient@demo.com / password123')
-  console.log('- Doctor: doctor@demo.com / password123')
-  console.log('- Insurance: insurance@demo.com / password123')
-  console.log('- Bank: bank@demo.com / password123')
+  console.log('\n✅ Database seeded successfully!')
+  console.log('Demo users:')
+  console.log('🔹 Patient:    patient@demo.com / password123')
+  console.log('🔹 Doctor:     doctor@demo.com / password123')
+  console.log('🔹 Insurance:  insurance@demo.com / password123')
+  console.log('🔹 Bank:       bank@demo.com / password123')
 }
 
 main()

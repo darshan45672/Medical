@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10')
     const skip = (page - 1) * limit
 
-    let whereClause: any = {}
+    const whereClause: any = {}
 
     if (session.user.role === 'PATIENT') {
       whereClause.patientId = session.user.id
@@ -42,6 +42,17 @@ export async function GET(request: NextRequest) {
         },
         documents: true,
         payments: true,
+        claimReports: {
+          include: {
+            report: {
+              include: {
+                doctor: {
+                  select: { id: true, name: true, email: true }
+                }
+              }
+            }
+          }
+        }
       },
       orderBy: { createdAt: 'desc' },
       skip,
