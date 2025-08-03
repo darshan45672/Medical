@@ -8,15 +8,20 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { StatusBadge } from '@/components/ui/status-badge'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import { EnhancedLoadingSpinner } from '@/components/ui/enhanced-loading-spinner'
 import { BookAppointmentModal } from '@/components/ui/book-appointment-modal'
 import { AppointmentStatusBadge } from '@/components/ui/appointment-status-badge'
+import { PaymentStatusBadge } from '@/components/ui/payment-status-badge'
+import { PaymentManagementModal } from '@/components/ui/payment-management-modal'
+import { EnhancedActionButton } from '@/components/ui/enhanced-action-button'
+import { GradientButton } from '@/components/ui/gradient-button'
 import { ClaimDetailsModal } from '@/components/ui/claim-details-modal'
 import { NewClaimModal } from '@/components/ui/new-claim-modal'
 import { CreatePatientReportModal } from '@/components/ui/create-patient-report-modal'
 import { Carousel } from '@/components/ui/carousel'
 import { Header } from '@/components/layout/header'
 import { useClaims, useClaim } from '@/hooks/use-claims'
+import { usePayments } from '@/hooks/use-payments'
 import { useAppointments } from '@/hooks/use-appointments'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -38,7 +43,9 @@ import {
   X,
   Settings,
   Eye,
-  CreditCard
+  CreditCard,
+  Sparkles,
+  Activity
 } from 'lucide-react'
 import Link from 'next/link'
 import { Claim, AppointmentStatus, ClaimStatus, UserRole } from '@/types'
@@ -52,6 +59,7 @@ export default function DashboardPage() {
   const { data: appointmentsData, isLoading: isLoadingAppointments } = useAppointments({ limit: 10 })
   // const { data: allAppointmentsData, isLoading: isLoadingAllAppointments } = useAppointments()
   // const updateAppointment = useUpdateAppointment()
+  const { payments: paymentsData, isLoading: isLoadingPayments, refetch: refetchPayments } = usePayments()
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false)
   const [isNewClaimModalOpen, setIsNewClaimModalOpen] = useState(false)
   const [isCreateReportModalOpen, setIsCreateReportModalOpen] = useState(false)
@@ -59,6 +67,13 @@ export default function DashboardPage() {
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null)
   const [isClaimDetailsModalOpen, setIsClaimDetailsModalOpen] = useState(false)
   const [updatingClaimId, setUpdatingClaimId] = useState<string | null>(null)
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
+  const [selectedPaymentId, setSelectedPaymentId] = useState<string | null>(null)
+  
+  // Get selected payment data
+  const selectedPayment = selectedPaymentId 
+    ? paymentsData?.find((payment: any) => payment.id === selectedPaymentId) || null
+    : null
   
   const { data: selectedClaimData } = useClaim(selectedClaimId || '')
 
@@ -93,7 +108,7 @@ export default function DashboardPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950">
         <Header />
         <div className="flex items-center justify-center h-96">
-          <LoadingSpinner size="lg" />
+          <EnhancedLoadingSpinner variant="gradient" size="xl" text="Loading dashboard..." />
         </div>
       </div>
     )
@@ -815,21 +830,23 @@ export default function DashboardPage() {
           <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
             {session.user.role === UserRole.PATIENT && (
               <>
-                <Button 
+                <GradientButton 
+                  gradient="blue"
                   onClick={() => setIsNewClaimModalOpen(true)}
-                  className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer"
+                  className="w-full sm:w-auto"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   New Claim
-                </Button>
+                </GradientButton>
                 
-                <Button 
+                <GradientButton 
+                  gradient="green"
                   onClick={() => setIsAppointmentModalOpen(true)}
-                  className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer"
+                  className="w-full sm:w-auto"
                 >
                   <Calendar className="h-4 w-4 mr-2" />
                   Book Appointment
-                </Button>
+                </GradientButton>
                 
                 <Button 
                   onClick={() => router.push('/patient-appointments')}
@@ -864,63 +881,71 @@ export default function DashboardPage() {
                 
                 {session.user.role === UserRole.INSURANCE ? (
                   <>
-                    <Link href="/insurance/claims">
-                      <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer">
-                        <FileText className="h-4 w-4 mr-2" />
-                        See Claims
-                      </Button>
-                    </Link>
+                    <GradientButton 
+                      gradient="blue"
+                      onClick={() => router.push('/insurance/claims')}
+                      className="w-full sm:w-auto"
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      See Claims
+                    </GradientButton>
                     
-                    <Button 
+                    <GradientButton 
+                      gradient="amber"
                       onClick={() => router.push('/insurance/claim-requests')}
-                      className="w-full sm:w-auto bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer"
+                      className="w-full sm:w-auto"
                     >
                       <Clock className="h-4 w-4 mr-2" />
                       Users Requested for Claim
-                    </Button>
+                    </GradientButton>
                     
-                    <Button 
+                    <GradientButton 
+                      gradient="amber"
                       onClick={() => router.push('/insurance/pending-claims')}
-                      className="w-full sm:w-auto bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-700 hover:to-amber-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer text-white"
+                      className="w-full sm:w-auto"
                     >
                       <Clock className="h-4 w-4 mr-2" />
                       Review Pending Claims
-                    </Button>
+                    </GradientButton>
                     
-                    <Button 
+                    <GradientButton 
+                      gradient="green"
                       onClick={() => router.push('/insurance/approved-claims')}
-                      className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer text-white"
+                      className="w-full sm:w-auto"
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
                       Approved Claims
-                    </Button>
+                    </GradientButton>
                   </>
                 ) : (
                   <>
                     {/* Bank Specific Actions */}
-                    <Button 
+                    <GradientButton 
+                      gradient="green"
                       onClick={() => {/* TODO: Add payment queue page */}}
-                      className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer text-white"
+                      className="w-full sm:w-auto"
                     >
                       <CreditCard className="h-4 w-4 mr-2" />
                       Payment Queue
-                    </Button>
+                    </GradientButton>
                     
-                    <Button 
+                    <GradientButton 
+                      gradient="blue"
                       onClick={() => {/* TODO: Add payment history page */}}
-                      className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer"
+                      className="w-full sm:w-auto"
                     >
                       <FileText className="h-4 w-4 mr-2" />
                       Payment History
-                    </Button>
+                    </GradientButton>
                     
-                    <Button 
+                    <GradientButton 
+                      gradient="purple"
                       onClick={() => {/* TODO: Add transaction reports page */}}
-                      className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer"
+                      className="w-full sm:w-auto"
                     >
                       <DollarSign className="h-4 w-4 mr-2" />
                       Transaction Reports
-                    </Button>
+                    </GradientButton>
                     
                     <Button 
                       onClick={() => {/* TODO: Add bulk payment processing */}}
@@ -999,7 +1024,7 @@ export default function DashboardPage() {
               <CardContent className="p-0 sm:p-6">
                 {isLoading ? (
                   <div className="flex justify-center py-8 sm:py-12">
-                    <LoadingSpinner />
+                    <EnhancedLoadingSpinner variant="gradient" size="lg" text="Loading today's claims..." />
                   </div>
                 ) : (() => {
                   const today = new Date()
@@ -1080,7 +1105,7 @@ export default function DashboardPage() {
               <CardContent className="p-0 sm:p-6">
                 {isLoading ? (
                   <div className="flex justify-center py-8 sm:py-12">
-                    <LoadingSpinner />
+                    <EnhancedLoadingSpinner variant="gradient" size="lg" text="Loading claim status..." />
                   </div>
                 ) : (() => {
                   const submittedClaims = claims.filter((claim: any) => 
@@ -1244,7 +1269,7 @@ export default function DashboardPage() {
               <CardContent className="p-0 sm:p-6">
                 {isLoading ? (
                   <div className="flex justify-center py-8 sm:py-12">
-                    <LoadingSpinner />
+                    <EnhancedLoadingSpinner variant="gradient" size="lg" text="Loading all claims..." />
                   </div>
                 ) : claims.length === 0 ? (
                   <div className="text-center py-8 sm:py-12 px-4">
@@ -1323,80 +1348,211 @@ export default function DashboardPage() {
         {/* Bank Dashboard Sections */}
         {session.user.role === UserRole.BANK && (
           <>
-            {/* Approved Claims Ready for Payment */}
-            <Card className="border-0 shadow-2xl bg-white dark:bg-slate-800 mb-8 sm:mb-12">
-              <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
-                <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Approved Claims - Ready for Payment</CardTitle>
-                <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
-                  Insurance-approved claims awaiting payment disbursement
-                </CardDescription>
+            {/* Payment Queue - Pending Payments */}
+            <Card className="border-0 shadow-2xl bg-gradient-to-br from-white via-slate-50 to-blue-50 dark:from-slate-900 dark:via-slate-800 dark:to-blue-950 mb-8 sm:mb-12 overflow-hidden">
+              <CardHeader className="relative bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 text-white p-8">
+                <div className="absolute inset-0 bg-black/10"></div>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl border border-white/30">
+                        <Clock className="h-8 w-8 text-white" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-3xl font-bold text-white mb-2">
+                          Payment Queue
+                        </CardTitle>
+                        <CardDescription className="text-amber-100 text-lg">
+                          Approved claims ready for immediate processing
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-4xl font-bold text-white">
+                        {paymentsData?.filter((payment: any) => payment.status === 'PENDING').length || 0}
+                      </div>
+                      <p className="text-amber-100">Pending</p>
+                    </div>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="p-0 sm:p-6">
-                {isLoading ? (
+                {isLoadingPayments ? (
                   <div className="flex justify-center py-8 sm:py-12">
-                    <LoadingSpinner />
+                    <EnhancedLoadingSpinner variant="gradient" size="lg" text="Loading payment queue..." />
                   </div>
                 ) : (() => {
-                  const approvedClaims = claims.filter((claim: any) => claim.status === ClaimStatus.APPROVED)
+                  const pendingPayments = paymentsData?.filter((payment: any) => payment.status === 'PENDING') || []
                   
-                  return approvedClaims.length === 0 ? (
-                    <div className="text-center py-8 sm:py-12 px-4">
-                      <div className="bg-gradient-to-r from-green-100 to-green-200 dark:from-green-700 dark:to-green-600 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
-                        <CheckCircle className="h-8 w-8 sm:h-10 sm:w-10 text-green-600 dark:text-green-300" />
+                  return pendingPayments.length === 0 ? (
+                    <div className="text-center py-12 px-6">
+                      <div className="relative mx-auto w-32 h-32 mb-6">
+                        <div className="absolute inset-0 bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 rounded-full shadow-lg"></div>
+                        <div className="absolute inset-4 bg-gradient-to-br from-amber-200 to-orange-200 dark:from-amber-800/50 dark:to-orange-800/50 rounded-full flex items-center justify-center">
+                          <Clock className="h-12 w-12 text-amber-600 dark:text-amber-400" />
+                        </div>
                       </div>
-                      <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">No payments pending</h3>
-                      <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4 sm:mb-6 max-w-md mx-auto">
-                        All approved claims have been processed for payment. New approved claims will appear here.
+                      <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">No Pending Payments</h3>
+                      <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto text-lg">
+                        All approved claims have been processed. New pending payments will appear here automatically.
                       </p>
+                      <div className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
+                        <Sparkles className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                        <span className="text-amber-700 dark:text-amber-300 font-semibold">Queue is clear!</span>
+                      </div>
                     </div>
                   ) : (
-                    <div className="space-y-4 px-4 sm:px-6">
-                      {approvedClaims.slice(0, 5).map((claim: any) => (
-                        <Card key={claim.id} className="border border-gray-200 dark:border-slate-700 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 hover:shadow-lg transition-all duration-300">
-                          <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-4">
-                                <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                                  <CreditCard className="h-5 w-5 text-green-600 dark:text-green-400" />
-                                </div>
-                                <div>
-                                  <h4 className="font-medium text-gray-900 dark:text-gray-100 font-mono text-sm">
-                                    {claim.claimNumber}
-                                  </h4>
-                                  <p className="text-sm text-gray-900 dark:text-gray-100 font-medium">
-                                    {claim.diagnosis}
-                                  </p>
-                                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                                    Patient: {claim.patient?.name || 'Unknown Patient'}
-                                  </p>
-                                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                                    Approved: {formatCurrency(parseFloat(claim.approvedAmount || claim.claimAmount))}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-3">
-                                <div className="bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full">
-                                  <span className="text-xs font-medium text-green-800 dark:text-green-300">APPROVED</span>
-                                </div>
-                                <Button 
+                    <div className="overflow-x-auto bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700">
+                      <Table>
+                        <TableHeader className="bg-gradient-to-r from-gray-50 to-slate-50 dark:from-slate-700 dark:to-slate-800">
+                          <TableRow className="border-gray-200 dark:border-slate-600">
+                            <TableHead className="text-left text-gray-700 dark:text-gray-300 font-semibold py-4 px-4 sm:px-6">Claim ID</TableHead>
+                            <TableHead className="text-left text-gray-700 dark:text-gray-300 font-semibold py-4 px-4 sm:px-6">Patient</TableHead>
+                            <TableHead className="text-left text-gray-700 dark:text-gray-300 font-semibold py-4 px-4 sm:px-6">Amount</TableHead>
+                            <TableHead className="text-left text-gray-700 dark:text-gray-300 font-semibold py-4 px-4 sm:px-6">Status</TableHead>
+                            <TableHead className="text-left text-gray-700 dark:text-gray-300 font-semibold py-4 px-4 sm:px-6">Date</TableHead>
+                            <TableHead className="text-right text-gray-700 dark:text-gray-300 font-semibold py-4 px-4 sm:px-6">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {pendingPayments.map((payment: any, index: number) => (
+                            <TableRow 
+                              key={payment.id} 
+                              className={`border-gray-200 dark:border-slate-700 hover:bg-gradient-to-r hover:from-amber-50 hover:to-yellow-50 dark:hover:from-amber-950/20 dark:hover:to-yellow-950/20 transition-all duration-200 ${
+                                index % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-gray-50/50 dark:bg-slate-800/50'
+                              }`}
+                            >
+                              <TableCell className="font-mono text-sm font-medium text-gray-900 dark:text-gray-100 py-4 px-4 sm:px-6">
+                                {payment.claimId.substring(0, 8)}...
+                              </TableCell>
+                              <TableCell className="text-gray-700 dark:text-gray-200 py-4 px-4 sm:px-6 font-medium">
+                                {payment.claim?.patient?.name || 'N/A'}
+                              </TableCell>
+                              <TableCell className="text-gray-700 dark:text-gray-200 py-4 px-4 sm:px-6 font-semibold">
+                                {formatCurrency(payment.amount)}
+                              </TableCell>
+                              <TableCell className="py-4 px-4 sm:px-6">
+                                <PaymentStatusBadge status={payment.status} size="sm" />
+                              </TableCell>
+                              <TableCell className="text-gray-700 dark:text-gray-200 py-4 px-4 sm:px-6 text-sm">
+                                {formatDate(payment.createdAt)}
+                              </TableCell>
+                              <TableCell className="text-right py-4 px-4 sm:px-6">
+                                <EnhancedActionButton
+                                  action="process"
                                   size="sm"
-                                  className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
-                                >
-                                  <CreditCard className="h-4 w-4 mr-1" />
-                                  Process Payment
-                                </Button>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                      {approvedClaims.length > 5 && (
-                        <div className="text-center pt-4">
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Showing 5 of {approvedClaims.length} approved claims
-                          </p>
-                        </div>
-                      )}
+                                  onClick={() => {
+                                    setSelectedPaymentId(payment.id)
+                                    setIsPaymentModalOpen(true)
+                                  }}
+                                />
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )
+                })()}
+              </CardContent>
+            </Card>
+
+            {/* Processing Payments */}
+            <Card className="border-0 shadow-2xl bg-gradient-to-br from-white via-slate-50 to-blue-50 dark:from-slate-900 dark:via-slate-800 dark:to-blue-950 mb-8 sm:mb-12 overflow-hidden">
+              <CardHeader className="relative bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white p-8">
+                <div className="absolute inset-0 bg-black/10"></div>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full blur-2xl"></div>
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl border border-white/30">
+                        <Activity className="h-8 w-8 text-white animate-pulse" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-3xl font-bold text-white mb-2">
+                          Active Processing
+                        </CardTitle>
+                        <CardDescription className="text-blue-100 text-lg">
+                          Payments currently being processed in real-time
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-4xl font-bold text-white">
+                        {paymentsData?.filter((payment: any) => payment.status === 'PROCESSING').length || 0}
+                      </div>
+                      <p className="text-blue-100">Processing</p>
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0 sm:p-6">
+                {isLoadingPayments ? (
+                  <div className="flex justify-center py-8 sm:py-12">
+                    <EnhancedLoadingSpinner variant="gradient" size="lg" text="Loading processing payments..." />
+                  </div>
+                ) : (() => {
+                  const processingPayments = paymentsData?.filter((payment: any) => payment.status === 'PROCESSING') || []
+                  
+                  return processingPayments.length === 0 ? (
+                    <div className="text-center py-8 sm:py-12 px-4">
+                      <div className="bg-gradient-to-r from-blue-100 to-blue-200 dark:from-blue-700 dark:to-blue-600 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                        <Settings className="h-8 w-8 sm:h-10 sm:w-10 text-blue-600 dark:text-blue-300" />
+                      </div>
+                      <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">No payments processing</h3>
+                      <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">No payments are currently being processed</p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="border-gray-200 dark:border-slate-700">
+                            <TableHead className="text-left text-gray-600 dark:text-gray-300 font-semibold py-3 px-2 sm:px-4">Claim ID</TableHead>
+                            <TableHead className="text-left text-gray-600 dark:text-gray-300 font-semibold py-3 px-2 sm:px-4">Patient</TableHead>
+                            <TableHead className="text-left text-gray-600 dark:text-gray-300 font-semibold py-3 px-2 sm:px-4">Amount</TableHead>
+                            <TableHead className="text-left text-gray-600 dark:text-gray-300 font-semibold py-3 px-2 sm:px-4">Status</TableHead>
+                            <TableHead className="text-left text-gray-600 dark:text-gray-300 font-semibold py-3 px-2 sm:px-4">Started</TableHead>
+                            <TableHead className="text-left text-gray-600 dark:text-gray-300 font-semibold py-3 px-2 sm:px-4">Processed By</TableHead>
+                            <TableHead className="text-right text-gray-600 dark:text-gray-300 font-semibold py-3 px-2 sm:px-4">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {processingPayments.map((payment: any) => (
+                            <TableRow key={payment.id} className="border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
+                              <TableCell className="font-medium text-gray-900 dark:text-gray-100 py-3 px-2 sm:px-4">
+                                {payment.claimId.substring(0, 8)}...
+                              </TableCell>
+                              <TableCell className="text-gray-700 dark:text-gray-200 py-3 px-2 sm:px-4">
+                                {payment.claim?.patient?.name || 'N/A'}
+                              </TableCell>
+                              <TableCell className="text-gray-700 dark:text-gray-200 py-3 px-2 sm:px-4">
+                                {formatCurrency(payment.amount)}
+                              </TableCell>
+                              <TableCell className="py-3 px-2 sm:px-4">
+                                <PaymentStatusBadge status={payment.status} />
+                              </TableCell>
+                              <TableCell className="text-gray-700 dark:text-gray-200 py-3 px-2 sm:px-4">
+                                {payment.processedAt ? formatDate(payment.processedAt) : 'N/A'}
+                              </TableCell>
+                              <TableCell className="text-gray-700 dark:text-gray-200 py-3 px-2 sm:px-4">
+                                {payment.processedBy?.name || 'N/A'}
+                              </TableCell>
+                              <TableCell className="text-right py-3 px-2 sm:px-4">
+                                <EnhancedActionButton
+                                  action="manage"
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedPaymentId(payment.id)
+                                    setIsPaymentModalOpen(true)
+                                  }}
+                                />
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
                     </div>
                   )
                 })()}
@@ -1404,23 +1560,45 @@ export default function DashboardPage() {
             </Card>
 
             {/* Recent Payment Transactions */}
-            <Card className="border-0 shadow-2xl bg-white dark:bg-slate-800 mb-8 sm:mb-12">
-              <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
-                <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Payment Transactions</CardTitle>
-                <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
-                  Recently processed claim payments and disbursements
-                </CardDescription>
+            <Card className="border-0 shadow-2xl bg-gradient-to-br from-white via-slate-50 to-emerald-50 dark:from-slate-900 dark:via-slate-800 dark:to-emerald-950 mb-8 sm:mb-12 overflow-hidden">
+              <CardHeader className="relative bg-gradient-to-r from-emerald-500 via-teal-500 to-green-500 text-white p-8">
+                <div className="absolute inset-0 bg-black/10"></div>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl border border-white/30">
+                        <CheckCircle className="h-8 w-8 text-white" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-3xl font-bold text-white mb-2">
+                          Transaction History
+                        </CardTitle>
+                        <CardDescription className="text-emerald-100 text-lg">
+                          Recently completed payment transactions and disbursements
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-4xl font-bold text-white">
+                        {paymentsData?.filter((payment: any) => ['COMPLETED', 'FAILED', 'CANCELLED', 'REFUNDED'].includes(payment.status)).length || 0}
+                      </div>
+                      <p className="text-emerald-100">Completed</p>
+                    </div>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="p-0 sm:p-6">
-                {isLoading ? (
+                {isLoadingPayments ? (
                   <div className="flex justify-center py-8 sm:py-12">
-                    <LoadingSpinner />
+                    <EnhancedLoadingSpinner variant="gradient" size="lg" text="Loading..." />
                   </div>
                 ) : (() => {
-                  const paidClaims = claims.filter((claim: any) => claim.status === ClaimStatus.PAID)
-                    .sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+                  const completedPayments = paymentsData
+                    ?.filter((payment: any) => ['COMPLETED', 'FAILED', 'CANCELLED', 'REFUNDED'].includes(payment.status))
+                    ?.sort((a: any, b: any) => new Date(b.processedAt || b.updatedAt).getTime() - new Date(a.processedAt || a.updatedAt).getTime()) || []
                   
-                  return paidClaims.length === 0 ? (
+                  return completedPayments.length === 0 ? (
                     <div className="text-center py-8 sm:py-12 px-4">
                       <div className="bg-gradient-to-r from-emerald-100 to-emerald-200 dark:from-emerald-700 dark:to-emerald-600 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
                         <CreditCard className="h-8 w-8 sm:h-10 sm:w-10 text-emerald-600 dark:text-emerald-300" />
@@ -1432,45 +1610,72 @@ export default function DashboardPage() {
                     </div>
                   ) : (
                     <div className="space-y-4 px-4 sm:px-6">
-                      {paidClaims.slice(0, 6).map((claim: any) => (
-                        <Card key={claim.id} className="border border-gray-200 dark:border-slate-700 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20 hover:shadow-lg transition-all duration-300">
+                      {completedPayments.slice(0, 6).map((payment: any) => (
+                        <Card key={payment.id} className={`border border-gray-200 dark:border-slate-700 hover:shadow-lg transition-all duration-300 ${
+                          payment.status === 'COMPLETED' 
+                            ? 'bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20'
+                            : payment.status === 'FAILED'
+                            ? 'bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-950/20 dark:to-pink-950/20'
+                            : 'bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-950/20 dark:to-slate-950/20'
+                        }`}>
                           <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-4">
-                                <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
-                                  <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                                <div className={`p-2 rounded-lg ${
+                                  payment.status === 'COMPLETED' 
+                                    ? 'bg-emerald-100 dark:bg-emerald-900/30'
+                                    : payment.status === 'FAILED'
+                                    ? 'bg-red-100 dark:bg-red-900/30'
+                                    : 'bg-gray-100 dark:bg-gray-900/30'
+                                }`}>
+                                  {payment.status === 'COMPLETED' ? (
+                                    <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                                  ) : payment.status === 'FAILED' ? (
+                                    <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                                  ) : (
+                                    <CreditCard className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                                  )}
                                 </div>
                                 <div>
                                   <h4 className="font-medium text-gray-900 dark:text-gray-100 font-mono text-sm">
-                                    {claim.claimNumber}
+                                    {payment.claimId.substring(0, 8)}...
                                   </h4>
                                   <p className="text-sm text-gray-900 dark:text-gray-100 font-medium">
-                                    {claim.patient?.name || 'Unknown Patient'}
+                                    {payment.claim?.patient?.name || 'Unknown Patient'}
                                   </p>
                                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                                    {claim.diagnosis}
+                                    {payment.claim?.diagnosis || 'Payment transaction'}
                                   </p>
                                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                                    Processed: {formatDate(claim.updatedAt)}
+                                    Processed: {formatDate(payment.processedAt || payment.updatedAt)}
                                   </p>
+                                  {payment.transactionId && (
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+                                      TXN: {payment.transactionId}
+                                    </p>
+                                  )}
                                 </div>
                               </div>
                               <div className="text-right">
-                                <div className="bg-emerald-100 dark:bg-emerald-900/30 px-3 py-1 rounded-full mb-2">
-                                  <span className="text-xs font-medium text-emerald-800 dark:text-emerald-300">PAID</span>
-                                </div>
-                                <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                                  {formatCurrency(parseFloat(claim.approvedAmount || claim.claimAmount))}
+                                <PaymentStatusBadge status={payment.status} />
+                                <p className={`text-lg font-bold mt-2 ${
+                                  payment.status === 'COMPLETED' 
+                                    ? 'text-emerald-600 dark:text-emerald-400'
+                                    : payment.status === 'FAILED'
+                                    ? 'text-red-600 dark:text-red-400'
+                                    : 'text-gray-600 dark:text-gray-400'
+                                }`}>
+                                  {formatCurrency(payment.amount)}
                                 </p>
                               </div>
                             </div>
                           </CardContent>
                         </Card>
                       ))}
-                      {paidClaims.length > 6 && (
+                      {completedPayments.length > 6 && (
                         <div className="text-center pt-4">
                           <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Showing 6 of {paidClaims.length} completed transactions
+                            Showing 6 of {completedPayments.length} completed transactions
                           </p>
                         </div>
                       )}
@@ -1496,7 +1701,7 @@ export default function DashboardPage() {
               <CardContent className="p-0 sm:p-6">
                 {isLoadingAppointments ? (
                   <div className="flex justify-center py-8 sm:py-12">
-                    <LoadingSpinner />
+                    <EnhancedLoadingSpinner variant="gradient" size="lg" text="Loading..." />
                   </div>
                 ) : (() => {
                   const today = new Date()
@@ -1575,7 +1780,7 @@ export default function DashboardPage() {
               <CardContent className="p-0 sm:p-6">
                 {isLoadingAppointments ? (
                   <div className="flex justify-center py-8 sm:py-12">
-                    <LoadingSpinner />
+                    <EnhancedLoadingSpinner variant="gradient" size="lg" text="Loading..." />
                   </div>
                 ) : (() => {
                   const today = new Date()
@@ -1655,7 +1860,7 @@ export default function DashboardPage() {
               <CardContent className="p-0 sm:p-6">
                 {isLoadingAppointments ? (
                   <div className="flex justify-center py-8 sm:py-12">
-                    <LoadingSpinner />
+                    <EnhancedLoadingSpinner variant="gradient" size="lg" text="Loading..." />
                   </div>
                 ) : (() => {
                   const pendingRequests = appointments.filter((appointment: any) => 
@@ -1748,7 +1953,7 @@ export default function DashboardPage() {
               <CardContent className="p-0 sm:p-6">
                 {isLoading ? (
                   <div className="flex justify-center py-8 sm:py-12">
-                    <LoadingSpinner />
+                    <EnhancedLoadingSpinner variant="gradient" size="lg" text="Loading..." />
                   </div>
                 ) : claims.length === 0 ? (
                   <div className="text-center py-8 sm:py-12 px-4">
@@ -1817,7 +2022,7 @@ export default function DashboardPage() {
               <CardContent className="p-0 sm:p-6">
                 {isLoadingAppointments ? (
                   <div className="flex justify-center py-8 sm:py-12">
-                    <LoadingSpinner />
+                    <EnhancedLoadingSpinner variant="gradient" size="lg" text="Loading..." />
                   </div>
                 ) : appointments.length === 0 ? (
                   <div className="text-center py-8 sm:py-12 px-4">
@@ -1908,6 +2113,17 @@ export default function DashboardPage() {
         onOpenChange={handleCloseClaimDetails}
         claim={selectedClaimData}
         session={session}
+      />
+
+      {/* Payment Management Modal */}
+      <PaymentManagementModal
+        open={isPaymentModalOpen}
+        onOpenChange={setIsPaymentModalOpen}
+        payment={selectedPayment}
+        onPaymentUpdate={() => {
+          // Refresh payments data after update
+          refetchPayments()
+        }}
       />
     </div>
   )

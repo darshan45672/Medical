@@ -48,6 +48,15 @@ enum AppointmentStatus {
   COMPLETED
 }
 
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -190,14 +199,19 @@ model Document {
 }
 
 model Payment {
-  id            String   @id @default(cuid())
+  id            String        @id @default(cuid())
   claimId       String
-  amount        Decimal  @db.Decimal(10, 2)
-  paymentDate   DateTime
+  amount        Decimal       @db.Decimal(10, 2)
+  status        PaymentStatus @default(PENDING)
+  paymentDate   DateTime?     // Changed to optional as it should be set when payment is completed
   paymentMethod String?
   transactionId String?
   notes         String?
-  createdAt     DateTime @default(now())
+  processedBy   String?       // User ID who processed the payment
+  processedAt   DateTime?     // When the payment was processed
+  failureReason String?       // Reason for payment failure
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @default(now()) @updatedAt
 
   claim Claim @relation(fields: [claimId], references: [id])
 

@@ -35,7 +35,7 @@ async function main() {
     },
   })
 
-  await prisma.user.upsert({
+  const insurance = await prisma.user.upsert({
     where: { email: 'insurance@demo.com' },
     update: {},
     create: {
@@ -48,7 +48,7 @@ async function main() {
     },
   })
 
-  await prisma.user.upsert({
+  const bank = await prisma.user.upsert({
     where: { email: 'bank@demo.com' },
     update: {},
     create: {
@@ -281,10 +281,62 @@ async function main() {
     data: {
       claimId: claim.id,
       amount: 275.0,
+      status: 'COMPLETED',
       paymentDate: new Date('2024-01-15'),
       paymentMethod: 'Bank Transfer',
       transactionId: 'TXN-004-DEMO',
       notes: 'Reimbursement to patient via direct deposit.',
+      processedAt: new Date('2024-01-15'),
+      processedBy: bank.id,
+    },
+  })
+
+  // Create additional test payments with different statuses
+  // Find or create another approved claim for testing
+  const additionalClaim = await prisma.claim.create({
+    data: {
+      claimNumber: 'CLM-002-TEST',
+      patientId: patient2.id,
+      diagnosis: 'Regular Health Checkup',
+      treatmentDate: new Date('2025-08-01'),
+      claimAmount: '150.00',
+      status: 'APPROVED',
+      approvedAmount: '150.00',
+      approvedAt: new Date('2025-08-02'),
+    },
+  })
+
+  // Pending payment
+  await prisma.payment.create({
+    data: {
+      claimId: additionalClaim.id,
+      amount: 150.0,
+      status: 'PENDING',
+    },
+  })
+
+  // Processing payment
+  const processingClaim = await prisma.claim.create({
+    data: {
+      claimNumber: 'CLM-003-TEST',
+      patientId: patient3.id,
+      diagnosis: 'Physical Therapy Session',
+      treatmentDate: new Date('2025-08-02'),
+      claimAmount: '200.00',
+      status: 'APPROVED',
+      approvedAmount: '200.00',
+      approvedAt: new Date('2025-08-03'),
+    },
+  })
+
+  await prisma.payment.create({
+    data: {
+      claimId: processingClaim.id,
+      amount: 200.0,
+      status: 'PROCESSING',
+      processedAt: new Date(),
+      processedBy: bank.id,
+      transactionId: 'TXN-005-PROCESSING',
     },
   })
 
