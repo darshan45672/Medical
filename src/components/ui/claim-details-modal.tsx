@@ -18,7 +18,7 @@ import {
   Clock
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { UserRole } from '@/types'
+import { UserRole, ClaimStatus } from '@/types'
 
 interface ClaimDetailsModalProps {
   open: boolean
@@ -33,9 +33,9 @@ export function ClaimDetailsModal({ open, onOpenChange, claim, session }: ClaimD
 
   if (!claim) return null
 
-  const canEdit = claim.status === 'DRAFT' || claim.status === 'UNDER_REVIEW'
-  const canDelete = claim.status === 'DRAFT'
   const isInsuranceUser = session?.user?.role === UserRole.INSURANCE
+  const canEdit = !isInsuranceUser && (claim.status === 'DRAFT' || claim.status === 'UNDER_REVIEW')
+  const canDelete = claim.status === 'DRAFT'
   
   // Insurance actions based on claim status
   const canApprove = isInsuranceUser && claim.status === 'UNDER_REVIEW'
@@ -64,20 +64,23 @@ export function ClaimDetailsModal({ open, onOpenChange, claim, session }: ClaimD
     }
   }
 
-  const handleStatusChange = async (newStatus: string) => {
+  const handleStatusChange = async (newStatus: ClaimStatus) => {
     try {
       await updateClaimMutation.mutateAsync({
         id: claim.id,
-        status: newStatus
+        data: { status: newStatus }
       })
       
-      const statusMessages = {
-        'UNDER_REVIEW': 'Claim status updated to Under Review',
-        'APPROVED': 'Claim has been approved successfully',
-        'REJECTED': 'Claim has been rejected'
+      const statusMessages: Record<ClaimStatus, string> = {
+        [ClaimStatus.DRAFT]: 'Claim saved as draft',
+        [ClaimStatus.SUBMITTED]: 'Claim submitted',
+        [ClaimStatus.UNDER_REVIEW]: 'Claim status updated to Under Review',
+        [ClaimStatus.APPROVED]: 'Claim has been approved successfully',
+        [ClaimStatus.REJECTED]: 'Claim has been rejected',
+        [ClaimStatus.PAID]: 'Claim has been marked as paid'
       }
       
-      toast.success(statusMessages[newStatus as keyof typeof statusMessages] || 'Claim status updated')
+      toast.success(statusMessages[newStatus] || 'Claim status updated')
       onOpenChange(false)
     } catch {
       toast.error('Failed to update claim status')
@@ -334,6 +337,7 @@ export function ClaimDetailsModal({ open, onOpenChange, claim, session }: ClaimD
 
         <div className="border-t border-gray-200 dark:border-slate-700 pt-4 flex justify-between items-center">
           <div className="flex gap-2">
+            {/* Patient/Doctor Actions */}
             {canEdit && (
               <Button
                 onClick={handleEdit}
@@ -354,6 +358,42 @@ export function ClaimDetailsModal({ open, onOpenChange, claim, session }: ClaimD
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete Claim
               </Button>
+            )}
+
+            {/* Insurance Actions */}
+            {isInsuranceUser && (
+              <>
+                {canSetUnderReview && (
+                  <Button
+                    onClick={() => handleStatusChange(ClaimStatus.UNDER_REVIEW)}
+                    className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white"
+                    disabled={updateClaimMutation.isPending}
+                  >
+                    <Clock className="h-4 w-4 mr-2" />
+                    Set Under Review
+                  </Button>
+                )}
+                {canApprove && (
+                  <Button
+                    onClick={() => handleStatusChange(ClaimStatus.APPROVED)}
+                    className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white"
+                    disabled={updateClaimMutation.isPending}
+                  >
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Approve
+                  </Button>
+                )}
+                {canReject && (
+                  <Button
+                    onClick={() => handleStatusChange(ClaimStatus.REJECTED)}
+                    className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white"
+                    disabled={updateClaimMutation.isPending}
+                  >
+                    <XCircle className="h-4 w-4 mr-2" />
+                    Reject
+                  </Button>
+                )}
+              </>
             )}
           </div>
           

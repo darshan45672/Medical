@@ -1385,6 +1385,7 @@ export default function DashboardPage() {
         open={isClaimDetailsModalOpen}
         onOpenChange={handleCloseClaimDetails}
         claim={selectedClaimData}
+        session={session}
       />
     </div>
   )
