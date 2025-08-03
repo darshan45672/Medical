@@ -29,6 +29,7 @@ import {
   DollarSign, 
   Clock,
   CheckCircle,
+  XCircle,
   Calendar,
   CalendarCheck,
   ChevronDown,
@@ -217,6 +218,21 @@ export default function DashboardPage() {
       const pendingClaims = submittedClaims.filter((c: Claim) => c.status === ClaimStatus.SUBMITTED || c.status === ClaimStatus.UNDER_REVIEW).length
       const rejectedClaims = submittedClaims.filter((c: Claim) => c.status === ClaimStatus.REJECTED).length
       const totalAmount = submittedClaims.reduce((sum: number, claim: Claim) => sum + parseFloat(claim.claimAmount), 0)
+      
+      // Calculate approved amount
+      const approvedAmount = submittedClaims
+        .filter((c: Claim) => c.status === ClaimStatus.APPROVED || c.status === ClaimStatus.PAID)
+        .reduce((sum: number, claim: Claim) => sum + (parseFloat(claim.approvedAmount || '0') || parseFloat(claim.claimAmount)), 0)
+      
+      // Calculate today's claims
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const tomorrow = new Date(today)
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      const todaysClaims = submittedClaims.filter((claim: Claim) => {
+        const claimDate = new Date(claim.createdAt)
+        return claimDate >= today && claimDate < tomorrow
+      }).length
 
       return {
         totalClaims,
@@ -224,6 +240,8 @@ export default function DashboardPage() {
         pendingClaims,
         rejectedClaims,
         totalAmount,
+        approvedAmount,
+        todaysClaims,
       }
     }
   }
@@ -436,7 +454,7 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{stats.totalClaims}</div>
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">All time claims</p>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">All submitted claims</p>
                 </CardContent>
               </Card>
 
@@ -455,32 +473,110 @@ export default function DashboardPage() {
 
               <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Pending</CardTitle>
+                  <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Pending Review</CardTitle>
                   <div className="p-2 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg">
                     <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl sm:text-3xl font-bold text-yellow-600 dark:text-yellow-400">{stats.pendingClaims}</div>
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Under review</p>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Awaiting decision</p>
                 </CardContent>
               </Card>
 
               <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Amount</CardTitle>
-                  <div className="p-2 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
-                    <DollarSign className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Rejected</CardTitle>
+                  <div className="p-2 bg-red-50 dark:bg-red-950/30 rounded-lg">
+                    <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(stats.totalAmount)}</div>
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Total claim value</p>
+                  <div className="text-2xl sm:text-3xl font-bold text-red-600 dark:text-red-400">{stats.rejectedClaims}</div>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Claims denied</p>
                 </CardContent>
               </Card>
             </>
           )}
         </div>
+
+        {/* Additional Insurance Stats Row */}
+        {(session.user.role === UserRole.INSURANCE || session.user.role === UserRole.BANK) && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
+            <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Claim Value</CardTitle>
+                <div className="p-2 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
+                  <DollarSign className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(stats.totalAmount)}</div>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Total claimed amount</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Approved Amount</CardTitle>
+                <div className="p-2 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg">
+                  <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl sm:text-3xl font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(stats.approvedAmount)}</div>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Amount paid out</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Today&apos;s Claims</CardTitle>
+                <div className="p-2 bg-indigo-50 dark:bg-indigo-950/30 rounded-lg">
+                  <Calendar className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl sm:text-3xl font-bold text-indigo-600 dark:text-indigo-400">{stats.todaysClaims}</div>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Submitted today</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Stats Summary for Insurance */}
+        {(session.user.role === UserRole.INSURANCE || session.user.role === UserRole.BANK) && (
+          <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 mb-8 sm:mb-12">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">Processing Summary</CardTitle>
+              <CardDescription className="text-gray-600 dark:text-gray-300">
+                Overview of claim processing efficiency and financial impact
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                    {stats.totalClaims > 0 ? Math.round((stats.approvedClaims / stats.totalClaims) * 100) : 0}%
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Approval Rate</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-amber-600 dark:text-amber-400">
+                    {stats.totalClaims > 0 ? Math.round((stats.pendingClaims / stats.totalClaims) * 100) : 0}%
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Pending Rate</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-green-600 dark:text-green-400">
+                    {stats.totalAmount > 0 ? Math.round((stats.approvedAmount / stats.totalAmount) * 100) : 0}%
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Payout Ratio</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Quick Actions */}
         <div className="mb-8 sm:mb-12">
