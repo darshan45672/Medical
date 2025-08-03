@@ -471,7 +471,10 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+              <Card 
+                className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+                onClick={() => session?.user?.role === UserRole.INSURANCE && router.push('/insurance/pending-claims')}
+              >
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
                   <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Pending Review</CardTitle>
                   <div className="p-2 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg">
@@ -480,7 +483,9 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl sm:text-3xl font-bold text-yellow-600 dark:text-yellow-400">{stats.pendingClaims}</div>
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Awaiting decision</p>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    {session?.user?.role === UserRole.INSURANCE ? 'Click to review claims' : 'Awaiting decision'}
+                  </p>
                 </CardContent>
               </Card>
 
@@ -651,10 +656,9 @@ export default function DashboardPage() {
                     
                     <Button 
                       onClick={() => router.push('/insurance/pending-claims')}
-                      variant="outline" 
-                      className="w-full sm:w-auto border-yellow-300 dark:border-yellow-600 bg-white dark:bg-slate-800 hover:bg-yellow-50 dark:hover:bg-yellow-950/20 hover:border-yellow-400 dark:hover:border-yellow-500 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+                      className="w-full sm:w-auto bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-700 hover:to-amber-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer text-white"
                     >
-                      <CheckCircle className="h-4 w-4 mr-2" />
+                      <Clock className="h-4 w-4 mr-2" />
                       Review Pending Claims
                     </Button>
                     
