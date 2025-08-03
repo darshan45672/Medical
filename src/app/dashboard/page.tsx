@@ -17,7 +17,7 @@ import { CreatePatientReportModal } from '@/components/ui/create-patient-report-
 import { Carousel } from '@/components/ui/carousel'
 import { Header } from '@/components/layout/header'
 import { useClaims, useClaim } from '@/hooks/use-claims'
-import { useAppointments, useUpdateAppointment } from '@/hooks/use-appointments'
+import { useAppointments } from '@/hooks/use-appointments'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
@@ -35,7 +35,6 @@ import {
   ChevronUp,
   Check,
   X,
-  Ban,
   Settings,
   Eye
 } from 'lucide-react'
@@ -47,10 +46,10 @@ export default function DashboardPage() {
   const router = useRouter()
   const queryClient = useQueryClient()
   const { data: claimsData, isLoading } = useClaims({ limit: 10 })
-  const { data: allClaimsData, isLoading: isLoadingAllClaims } = useClaims()
+  // const { data: allClaimsData, isLoading: isLoadingAllClaims } = useClaims()
   const { data: appointmentsData, isLoading: isLoadingAppointments } = useAppointments({ limit: 10 })
-  const { data: allAppointmentsData, isLoading: isLoadingAllAppointments } = useAppointments()
-  const updateAppointment = useUpdateAppointment()
+  // const { data: allAppointmentsData, isLoading: isLoadingAllAppointments } = useAppointments()
+  // const updateAppointment = useUpdateAppointment()
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false)
   const [isNewClaimModalOpen, setIsNewClaimModalOpen] = useState(false)
   const [isCreateReportModalOpen, setIsCreateReportModalOpen] = useState(false)
@@ -232,18 +231,18 @@ export default function DashboardPage() {
   const stats = getStats()
 
   // Handler for updating appointment status to CONSULTED
-  const handleMarkAsConsulted = async (appointmentId: string, patientName: string) => {
-    try {
-      await updateAppointment.mutateAsync({
-        id: appointmentId,
-        data: { status: AppointmentStatus.CONSULTED }
-      })
-      toast.success(`Appointment with ${patientName} marked as consulted successfully!`)
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to update appointment status'
-      toast.error(errorMessage)
-    }
-  }
+  // const handleMarkAsConsulted = async (appointmentId: string, patientName: string) => {
+  //   try {
+  //     await updateAppointment.mutateAsync({
+  //       id: appointmentId,
+  //       data: { status: AppointmentStatus.CONSULTED }
+  //     })
+  //     toast.success(`Appointment with ${patientName} marked as consulted successfully!`)
+  //   } catch (error) {
+  //     const errorMessage = error instanceof Error ? error.message : 'Failed to update appointment status'
+  //     toast.error(errorMessage)
+  //   }
+  // }
 
   const getDashboardTitle = () => {
     switch (session.user.role) {
@@ -333,7 +332,7 @@ export default function DashboardPage() {
 
               <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Today's Schedule</CardTitle>
+                  <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Today&apos;s Schedule</CardTitle>
                   <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded-lg">
                     <CalendarCheck className="h-4 w-4 text-green-600 dark:text-green-400" />
                   </div>
@@ -609,11 +608,11 @@ export default function DashboardPage() {
                   }}
                   variant="outline" 
                   className="w-full sm:w-auto border-amber-300 dark:border-amber-600 bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-amber-950/20 hover:border-amber-400 dark:hover:border-amber-500 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
-                  disabled={isLoadingAllAppointments}
+                  disabled={isLoadingAppointments}
                 >
                   <Calendar className="h-4 w-4 mr-2" />
                   Manage Appointments
-                  {isLoadingAllAppointments ? (
+                  {isLoadingAppointments ? (
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-amber-600 ml-2"></div>
                   ) : isAppointmentManagementOpen ? (
                     <ChevronUp className="h-4 w-4 ml-2" />
@@ -632,7 +631,7 @@ export default function DashboardPage() {
             {/* Today's Claims */}
             <Card className="border-0 shadow-2xl bg-white dark:bg-slate-800 mb-8 sm:mb-12">
               <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
-                <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Today's Claims</CardTitle>
+                <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Today&apos;s Claims</CardTitle>
                 <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
                   Claims submitted by patients today that need your attention
                 </CardDescription>
@@ -967,7 +966,7 @@ export default function DashboardPage() {
             {/* Today's Appointments */}
             <Card className="border-0 shadow-2xl bg-white dark:bg-slate-800 mb-8 sm:mb-12">
               <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
-                <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Today's Appointments</CardTitle>
+                <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Today&apos;s Appointments</CardTitle>
                 <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
                   Your scheduled appointments for today
                 </CardDescription>
@@ -991,7 +990,7 @@ export default function DashboardPage() {
                       </div>
                       <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">No appointments today</h3>
                       <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4 sm:mb-6 max-w-md mx-auto">
-                        You don't have any scheduled appointments for today. Check back tomorrow or view all appointments.
+                        You don&apos;t have any scheduled appointments for today. Check back tomorrow or view all appointments.
                       </p>
                     </div>
                   ) : (
@@ -1046,9 +1045,9 @@ export default function DashboardPage() {
             {/* Today's Patients */}
             <Card className="border-0 shadow-2xl bg-white dark:bg-slate-800 mb-8 sm:mb-12">
               <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
-                <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Today's Patients</CardTitle>
+                <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Today&apos;s Patients</CardTitle>
                 <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
-                  Patients you'll see today with their appointment details
+                  Patients you&apos;ll see today with their appointment details
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0 sm:p-6">
@@ -1078,7 +1077,7 @@ export default function DashboardPage() {
                       </div>
                       <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">No patients today</h3>
                       <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4 sm:mb-6 max-w-md mx-auto">
-                        You don't have any patients scheduled for today.
+                        You don&apos;t have any patients scheduled for today.
                       </p>
                     </div>
                   ) : (
@@ -1148,7 +1147,7 @@ export default function DashboardPage() {
                       </div>
                       <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">No pending requests</h3>
                       <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4 sm:mb-6 max-w-md mx-auto">
-                        You don't have any pending appointment requests at the moment.
+                        You don&apos;t have any pending appointment requests at the moment.
                       </p>
                     </div>
                   ) : (

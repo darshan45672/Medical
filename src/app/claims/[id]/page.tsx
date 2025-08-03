@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -11,10 +11,6 @@ import {
   ArrowLeft, 
   Calendar, 
   Clock, 
-  User, 
-  Phone, 
-  Mail, 
-  MapPin,
   FileText,
   Download,
   Eye,
@@ -23,7 +19,6 @@ import {
   XCircle,
   DollarSign,
   Banknote,
-  Building,
   Activity
 } from 'lucide-react'
 import Link from 'next/link'
@@ -121,13 +116,7 @@ export default function ClaimDetailPage({ params }: ClaimPageProps) {
     getParams()
   }, [params])
 
-  useEffect(() => {
-    if (claimId && session?.user && (session.user.role === UserRole.PATIENT || session.user.role === UserRole.INSURANCE || session.user.role === UserRole.BANK)) {
-      fetchClaimDetails()
-    }
-  }, [claimId, session])
-
-  const fetchClaimDetails = async () => {
+  const fetchClaimDetails = useCallback(async () => {
     if (!claimId) return
 
     try {
@@ -164,7 +153,13 @@ export default function ClaimDetailPage({ params }: ClaimPageProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [claimId])
+
+  useEffect(() => {
+    if (claimId && session?.user && (session.user.role === UserRole.PATIENT || session.user.role === UserRole.INSURANCE || session.user.role === UserRole.BANK)) {
+      fetchClaimDetails()
+    }
+  }, [claimId, session, fetchClaimDetails])
 
   const handleViewDocument = async (document: any) => {
     try {

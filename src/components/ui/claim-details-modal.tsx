@@ -12,17 +12,22 @@ import {
   Stethoscope,
   Edit,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  Clock
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { UserRole } from '@/types'
 
 interface ClaimDetailsModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   claim: any | null
+  session?: any
 }
 
-export function ClaimDetailsModal({ open, onOpenChange, claim }: ClaimDetailsModalProps) {
+export function ClaimDetailsModal({ open, onOpenChange, claim, session }: ClaimDetailsModalProps) {
   const updateClaimMutation = useUpdateClaim()
   const deleteClaimMutation = useDeleteClaim()
 
@@ -30,6 +35,12 @@ export function ClaimDetailsModal({ open, onOpenChange, claim }: ClaimDetailsMod
 
   const canEdit = claim.status === 'DRAFT' || claim.status === 'UNDER_REVIEW'
   const canDelete = claim.status === 'DRAFT'
+  const isInsuranceUser = session?.user?.role === UserRole.INSURANCE
+  
+  // Insurance actions based on claim status
+  const canApprove = isInsuranceUser && claim.status === 'UNDER_REVIEW'
+  const canReject = isInsuranceUser && claim.status === 'UNDER_REVIEW'
+  const canSetUnderReview = isInsuranceUser && claim.status === 'SUBMITTED'
 
   const handleEdit = () => {
     // TODO: Implement edit functionality - could open an edit modal or navigate to edit page
@@ -50,6 +61,26 @@ export function ClaimDetailsModal({ open, onOpenChange, claim }: ClaimDetailsMod
       } catch {
         toast.error('Failed to delete claim')
       }
+    }
+  }
+
+  const handleStatusChange = async (newStatus: string) => {
+    try {
+      await updateClaimMutation.mutateAsync({
+        id: claim.id,
+        status: newStatus
+      })
+      
+      const statusMessages = {
+        'UNDER_REVIEW': 'Claim status updated to Under Review',
+        'APPROVED': 'Claim has been approved successfully',
+        'REJECTED': 'Claim has been rejected'
+      }
+      
+      toast.success(statusMessages[newStatus as keyof typeof statusMessages] || 'Claim status updated')
+      onOpenChange(false)
+    } catch {
+      toast.error('Failed to update claim status')
     }
   }
 

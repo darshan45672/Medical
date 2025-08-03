@@ -488,7 +488,7 @@ export function NewClaimModal({ open, onOpenChange }: NewClaimModalProps) {
                             <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">No Medical Reports Available</h3>
                             <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
                               You can create a claim without a medical report, but it will be saved as a draft. 
-                              To submit your claim for review, you'll need to add a medical report later.
+                              To submit your claim for review, you&apos;ll need to add a medical report later.
                             </p>
                             <div className="flex items-center justify-center gap-2 text-xs text-amber-600 dark:text-amber-400">
                               <AlertTriangle className="h-4 w-4" />

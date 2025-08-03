@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -82,13 +82,7 @@ export default function PatientPage({ params }: PatientPageProps) {
     getPatientId()
   }, [params])
 
-  useEffect(() => {
-    if (session?.user?.role === UserRole.DOCTOR && patientId) {
-      fetchPatientDetails()
-    }
-  }, [session, patientId])
-
-  const fetchPatientDetails = async () => {
+  const fetchPatientDetails = useCallback(async () => {
     if (!patientId) return
     
     try {
@@ -107,7 +101,13 @@ export default function PatientPage({ params }: PatientPageProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [patientId])
+
+  useEffect(() => {
+    if (session?.user?.role === UserRole.DOCTOR && patientId) {
+      fetchPatientDetails()
+    }
+  }, [session, patientId, fetchPatientDetails])
 
   const handleDownloadReport = async (report: any) => {
     try {
@@ -199,7 +199,7 @@ export default function PatientPage({ params }: PatientPageProps) {
             <CardContent className="text-center py-12">
               <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Patient not found</h3>
               <p className="text-gray-500 dark:text-gray-400 mb-6">
-                The patient you're looking for doesn't exist or you don't have access to view their details.
+                The patient you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to view their details.
               </p>
               <Link href="/patients">
                 <Button className="cursor-pointer">

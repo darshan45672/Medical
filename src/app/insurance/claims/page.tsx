@@ -5,23 +5,17 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { 
   ArrowLeft, 
   Search, 
-  Filter, 
   FileText, 
-  Calendar, 
   DollarSign,
   User,
   Clock,
   CheckCircle,
-  XCircle,
-  AlertCircle,
-  Banknote,
   SlidersHorizontal,
   Eye,
   Download,
@@ -29,7 +23,6 @@ import {
   CalendarDays,
   TrendingUp,
   TrendingDown,
-  Users,
   Activity
 } from 'lucide-react'
 import Link from 'next/link'
@@ -99,7 +92,6 @@ export default function InsuranceClaimsPage() {
   const [amountFilter, setAmountFilter] = useState<string>('all')
   const [sortBy, setSortBy] = useState<'date' | 'amount' | 'status' | 'patient'>('date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
-  const [selectedClaim, setSelectedClaim] = useState<InsuranceClaim | null>(null)
   const [showFilters, setShowFilters] = useState(false)
 
   useEffect(() => {
@@ -140,7 +132,7 @@ export default function InsuranceClaimsPage() {
       setRefreshing(true)
       await fetchClaims()
       toast.success('Claims refreshed successfully')
-    } catch (error) {
+    } catch {
       toast.error('Failed to refresh claims')
     } finally {
       setRefreshing(false)
