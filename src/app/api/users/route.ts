@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const role = searchParams.get('role') as UserRole | null
     const search = searchParams.get('search')
+    const withClaims = searchParams.get('with_claims') === 'true'
 
     const whereClause: any = {}
 
@@ -30,20 +31,39 @@ export async function GET(request: NextRequest) {
       ]
     }
 
+    const selectClause: any = {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      phone: true,
+      address: true,
+      createdAt: true,
+    }
+
+    if (withClaims) {
+      selectClause.patientClaims = {
+        select: {
+          id: true,
+          claimNumber: true,
+          diagnosis: true,
+          claimAmount: true,
+          approvedAmount: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      }
+    }
+
     const users = await prisma.user.findMany({
       where: whereClause,
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        phone: true,
-        createdAt: true,
-      },
+      select: selectClause,
       orderBy: { createdAt: 'desc' },
     })
 
-    return NextResponse.json(users)
+    return NextResponse.json({ users })
   } catch (error) {
     console.error('Error fetching users:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

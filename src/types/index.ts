@@ -42,6 +42,15 @@ export enum AppointmentStatus {
   COMPLETED = 'COMPLETED'
 }
 
+export enum PaymentStatus {
+  PENDING = 'PENDING',
+  PROCESSING = 'PROCESSING',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+  CANCELLED = 'CANCELLED',
+  REFUNDED = 'REFUNDED'
+}
+
 // Type interfaces for common data structures
 export interface User {
   id: string

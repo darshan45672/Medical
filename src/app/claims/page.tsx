@@ -3,20 +3,17 @@
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { StatusBadge } from '@/components/ui/status-badge'
 import { 
   ArrowLeft, 
   Search, 
   Filter, 
   FileText, 
   Calendar, 
-  DollarSign,
-  User,
   Clock,
   CheckCircle,
   XCircle,

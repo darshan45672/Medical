@@ -25,6 +25,11 @@ export async function GET(request: NextRequest) {
       whereClause.patientId = session.user.id
     } else if (session.user.role === 'DOCTOR') {
       whereClause.doctorId = session.user.id
+    } else if (session.user.role === 'INSURANCE' || session.user.role === 'BANK') {
+      // Insurance and bank users can see all claims, but exclude drafts by default
+      if (!status && !searchParams.get('includeDrafts')) {
+        whereClause.status = { not: 'DRAFT' }
+      }
     }
 
     if (status) {
@@ -35,10 +40,21 @@ export async function GET(request: NextRequest) {
       where: whereClause,
       include: {
         patient: {
-          select: { id: true, name: true, email: true }
+          select: { 
+            id: true, 
+            name: true, 
+            email: true, 
+            phone: true,
+            address: true
+          }
         },
         doctor: {
-          select: { id: true, name: true, email: true }
+          select: { 
+            id: true, 
+            name: true, 
+            email: true, 
+            phone: true
+          }
         },
         documents: true,
         payments: true,

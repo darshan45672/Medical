@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -79,13 +79,7 @@ export default function PatientAppointmentPage({ params }: AppointmentPageProps)
     getParams()
   }, [params])
 
-  useEffect(() => {
-    if (appointmentId && session?.user?.role === UserRole.PATIENT) {
-      fetchAppointmentDetails()
-    }
-  }, [appointmentId, session])
-
-  const fetchAppointmentDetails = async () => {
+  const fetchAppointmentDetails = useCallback(async () => {
     if (!appointmentId) return
 
     try {
@@ -104,7 +98,13 @@ export default function PatientAppointmentPage({ params }: AppointmentPageProps)
     } finally {
       setLoading(false)
     }
-  }
+  }, [appointmentId])
+
+  useEffect(() => {
+    if (appointmentId && session?.user?.role === UserRole.PATIENT) {
+      fetchAppointmentDetails()
+    }
+  }, [appointmentId, session, fetchAppointmentDetails])
 
   const handleViewReport = async (reportId: string) => {
     try {

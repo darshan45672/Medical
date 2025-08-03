@@ -193,3 +193,82 @@ export async function DELETE(
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
+
+export async function PATCH(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await context.params
+    const session = await getServerSession(authOptions)
+    
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { status } = body
+
+    // Role-based authorization for status updates
+    if (session.user.role === 'INSURANCE') {
+      // Insurance users can update to standard review statuses
+      const validStatuses = ['SUBMITTED', 'UNDER_REVIEW', 'APPROVED', 'REJECTED']
+      if (!status || !validStatuses.includes(status)) {
+        return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
+      }
+
+      // Check if claim exists for insurance users
+      const existingClaim = await prisma.claim.findUnique({
+        where: { id },
+        select: { id: true }
+      })
+      
+      if (!existingClaim) {
+        return NextResponse.json({ error: 'Claim not found' }, { status: 404 })
+      }
+    } else if (session.user.role === 'BANK') {
+      // Bank users can only update approved claims to paid status
+      if (status !== 'PAID') {
+        return NextResponse.json({ error: 'Bank users can only update claims to PAID status' }, { status: 403 })
+      }
+      
+      // Check if claim is approved before allowing payment
+      const existingClaim = await prisma.claim.findUnique({
+        where: { id },
+        select: { status: true }
+      })
+      
+      if (!existingClaim) {
+        return NextResponse.json({ error: 'Claim not found' }, { status: 404 })
+      }
+      
+      if (existingClaim.status !== 'APPROVED') {
+        return NextResponse.json({ error: 'Only approved claims can be marked as paid' }, { status: 400 })
+      }
+    } else {
+      return NextResponse.json({ error: 'Forbidden: Insufficient permissions to update claim status' }, { status: 403 })
+    }
+
+    // Update claim status
+    const updatedClaim = await prisma.claim.update({
+      where: { id },
+      data: { 
+        status,
+        updatedAt: new Date()
+      },
+      include: {
+        patient: {
+          select: { id: true, name: true, email: true }
+        }
+      }
+    })
+
+    return NextResponse.json({ 
+      message: 'Claim status updated successfully',
+      claim: updatedClaim
+    })
+  } catch (error) {
+    console.error('Error updating claim status:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
