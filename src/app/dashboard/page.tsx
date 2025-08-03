@@ -922,7 +922,7 @@ export default function DashboardPage() {
                     {/* Bank Specific Actions */}
                     <GradientButton 
                       gradient="green"
-                      onClick={() => {/* TODO: Add payment queue page */}}
+                      onClick={() => router.push('/bank/payment-queue')}
                       className="w-full sm:w-auto"
                     >
                       <CreditCard className="h-4 w-4 mr-2" />
@@ -931,7 +931,7 @@ export default function DashboardPage() {
                     
                     <GradientButton 
                       gradient="blue"
-                      onClick={() => {/* TODO: Add payment history page */}}
+                      onClick={() => router.push('/bank/payment-history')}
                       className="w-full sm:w-auto"
                     >
                       <FileText className="h-4 w-4 mr-2" />
@@ -940,7 +940,7 @@ export default function DashboardPage() {
                     
                     <GradientButton 
                       gradient="purple"
-                      onClick={() => {/* TODO: Add transaction reports page */}}
+                      onClick={() => router.push('/bank/transaction-reports')}
                       className="w-full sm:w-auto"
                     >
                       <DollarSign className="h-4 w-4 mr-2" />
@@ -948,7 +948,7 @@ export default function DashboardPage() {
                     </GradientButton>
                     
                     <Button 
-                      onClick={() => {/* TODO: Add bulk payment processing */}}
+                      onClick={() => router.push('/bank/bulk-payment')}
                       variant="outline"
                       className="w-full sm:w-auto border-emerald-300 dark:border-emerald-600 bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 hover:border-emerald-400 dark:hover:border-emerald-500 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
                     >
@@ -1501,7 +1501,7 @@ export default function DashboardPage() {
                                         refetchPayments()
                                       } catch (error) {
                                         console.error('Error processing payment:', error)
-                                        toast.error(`Failed to process payment: ${error.message}`)
+                                        toast.error(`Failed to process payment: ${(error as Error)?.message || 'Unknown error'}`)
                                       }
                                     }}
                                     className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-md hover:shadow-lg transition-all duration-200"
