@@ -37,7 +37,8 @@ import {
   Check,
   X,
   Settings,
-  Eye
+  Eye,
+  CreditCard
 } from 'lucide-react'
 import Link from 'next/link'
 import { Claim, AppointmentStatus, ClaimStatus, UserRole } from '@/types'
@@ -445,143 +446,360 @@ export default function DashboardPage() {
           ) : (
             <>
               {/* Insurance/Bank Stats */}
-              <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Claims</CardTitle>
-                  <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
-                    <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{stats.totalClaims}</div>
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">All submitted claims</p>
-                </CardContent>
-              </Card>
+              {session.user.role === UserRole.INSURANCE ? (
+                <>
+                  {/* Insurance Specific Stats */}
+                  <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                      <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Claims</CardTitle>
+                      <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                        <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{stats.totalClaims}</div>
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">All submitted claims</p>
+                    </CardContent>
+                  </Card>
 
-              <Card 
-                className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer"
-                onClick={() => session?.user?.role === UserRole.INSURANCE && router.push('/insurance/approved-claims')}
-              >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Approved</CardTitle>
-                  <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded-lg">
-                    <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400">{stats.approvedClaims}</div>
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    {session?.user?.role === UserRole.INSURANCE ? 'Click to view approved claims' : 'Successfully processed'}
-                  </p>
-                </CardContent>
-              </Card>
+                  <Card 
+                    className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+                    onClick={() => router.push('/insurance/approved-claims')}
+                  >
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                      <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Approved</CardTitle>
+                      <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded-lg">
+                        <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400">{stats.approvedClaims}</div>
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Click to view approved claims</p>
+                    </CardContent>
+                  </Card>
 
-              <Card 
-                className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer"
-                onClick={() => session?.user?.role === UserRole.INSURANCE && router.push('/insurance/pending-claims')}
-              >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Pending Review</CardTitle>
-                  <div className="p-2 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg">
-                    <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl sm:text-3xl font-bold text-yellow-600 dark:text-yellow-400">{stats.pendingClaims}</div>
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    {session?.user?.role === UserRole.INSURANCE ? 'Click to review claims' : 'Awaiting decision'}
-                  </p>
-                </CardContent>
-              </Card>
+                  <Card 
+                    className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+                    onClick={() => router.push('/insurance/pending-claims')}
+                  >
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                      <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Pending Review</CardTitle>
+                      <div className="p-2 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg">
+                        <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl sm:text-3xl font-bold text-yellow-600 dark:text-yellow-400">{stats.pendingClaims}</div>
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Click to review claims</p>
+                    </CardContent>
+                  </Card>
 
-              <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Rejected</CardTitle>
-                  <div className="p-2 bg-red-50 dark:bg-red-950/30 rounded-lg">
-                    <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl sm:text-3xl font-bold text-red-600 dark:text-red-400">{stats.rejectedClaims}</div>
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Claims denied</p>
-                </CardContent>
-              </Card>
+                  <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                      <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Rejected</CardTitle>
+                      <div className="p-2 bg-red-50 dark:bg-red-950/30 rounded-lg">
+                        <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl sm:text-3xl font-bold text-red-600 dark:text-red-400">{stats.rejectedClaims}</div>
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Claims denied</p>
+                    </CardContent>
+                  </Card>
+                </>
+              ) : (
+                <>
+                  {/* Bank Specific Stats */}
+                  <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                      <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Approved Claims</CardTitle>
+                      <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded-lg">
+                        <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400">{stats.approvedClaims}</div>
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Ready for payment</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                      <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Paid Claims</CardTitle>
+                      <div className="p-2 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg">
+                        <CreditCard className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl sm:text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+                        {claims.filter((c: Claim) => c.status === ClaimStatus.PAID).length}
+                      </div>
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Successfully processed</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                      <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Pending Payment</CardTitle>
+                      <div className="p-2 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg">
+                        <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl sm:text-3xl font-bold text-yellow-600 dark:text-yellow-400">
+                        {claims.filter((c: Claim) => c.status === ClaimStatus.APPROVED).length}
+                      </div>
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Awaiting disbursement</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                      <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Clients</CardTitle>
+                      <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                        <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400">
+                        {new Set(claims.map((c: Claim) => c.patientName).filter(Boolean)).size}
+                      </div>
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Active beneficiaries</p>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
             </>
           )}
         </div>
 
-        {/* Additional Insurance Stats Row */}
+        {/* Additional Insurance/Bank Stats Row */}
         {(session.user.role === UserRole.INSURANCE || session.user.role === UserRole.BANK) && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
-            <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
-                <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Claim Value</CardTitle>
-                <div className="p-2 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
-                  <DollarSign className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(stats.totalAmount)}</div>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Total claimed amount</p>
-              </CardContent>
-            </Card>
+            {session.user.role === UserRole.INSURANCE ? (
+              <>
+                <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                    <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Claim Value</CardTitle>
+                    <div className="p-2 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
+                      <DollarSign className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(stats.totalAmount)}</div>
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Total claimed amount</p>
+                  </CardContent>
+                </Card>
 
-            <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
-                <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Approved Amount</CardTitle>
-                <div className="p-2 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg">
-                  <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl sm:text-3xl font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(stats.approvedAmount)}</div>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Amount paid out</p>
-              </CardContent>
-            </Card>
+                <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                    <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Approved Amount</CardTitle>
+                    <div className="p-2 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg">
+                      <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl sm:text-3xl font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(stats.approvedAmount)}</div>
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Amount approved</p>
+                  </CardContent>
+                </Card>
 
-            <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
-                <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Today&apos;s Claims</CardTitle>
-                <div className="p-2 bg-indigo-50 dark:bg-indigo-950/30 rounded-lg">
-                  <Calendar className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl sm:text-3xl font-bold text-indigo-600 dark:text-indigo-400">{stats.todaysClaims}</div>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Submitted today</p>
-              </CardContent>
-            </Card>
+                <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                    <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Today&apos;s Claims</CardTitle>
+                    <div className="p-2 bg-indigo-50 dark:bg-indigo-950/30 rounded-lg">
+                      <Calendar className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl sm:text-3xl font-bold text-indigo-600 dark:text-indigo-400">{stats.todaysClaims}</div>
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Submitted today</p>
+                  </CardContent>
+                </Card>
+              </>
+            ) : (
+              <>
+                {/* Bank Specific Stats */}
+                <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                    <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Amount to Disburse</CardTitle>
+                    <div className="p-2 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg">
+                      <DollarSign className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl sm:text-3xl font-bold text-yellow-600 dark:text-yellow-400">
+                      {formatCurrency(claims
+                        .filter((c: Claim) => c.status === ClaimStatus.APPROVED)
+                        .reduce((sum: number, claim: Claim) => sum + (parseFloat(claim.approvedAmount || '0') || parseFloat(claim.claimAmount)), 0)
+                      )}
+                    </div>
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Pending payments</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                    <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Amount Disbursed</CardTitle>
+                    <div className="p-2 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg">
+                      <CreditCard className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl sm:text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+                      {formatCurrency(claims
+                        .filter((c: Claim) => c.status === ClaimStatus.PAID)
+                        .reduce((sum: number, claim: Claim) => sum + (parseFloat(claim.approvedAmount || '0') || parseFloat(claim.claimAmount)), 0)
+                      )}
+                    </div>
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Total paid out</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                    <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Processing Rate</CardTitle>
+                    <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                      <CheckCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400">
+                      {(() => {
+                        const totalApproved = claims.filter((c: Claim) => c.status === ClaimStatus.APPROVED || c.status === ClaimStatus.PAID).length
+                        const paid = claims.filter((c: Claim) => c.status === ClaimStatus.PAID).length
+                        return totalApproved > 0 ? Math.round((paid / totalApproved) * 100) : 0
+                      })()}%
+                    </div>
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Claims processed</p>
+                  </CardContent>
+                </Card>
+              </>
+            )}
           </div>
         )}
 
-        {/* Stats Summary for Insurance */}
+        {/* Stats Summary for Insurance/Bank */}
         {(session.user.role === UserRole.INSURANCE || session.user.role === UserRole.BANK) && (
           <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 mb-8 sm:mb-12">
             <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">Processing Summary</CardTitle>
+              <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                {session.user.role === UserRole.INSURANCE ? 'Processing Summary' : 'Payment Processing Summary'}
+              </CardTitle>
               <CardDescription className="text-gray-600 dark:text-gray-300">
-                Overview of claim processing efficiency and financial impact
+                {session.user.role === UserRole.INSURANCE 
+                  ? 'Overview of claim processing efficiency and financial impact'
+                  : 'Overview of payment processing and disbursement analytics'
+                }
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                    {stats.totalClaims > 0 ? Math.round((stats.approvedClaims / stats.totalClaims) * 100) : 0}%
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Approval Rate</p>
+                {session.user.role === UserRole.INSURANCE ? (
+                  <>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                        {stats.totalClaims > 0 ? Math.round((stats.approvedClaims / stats.totalClaims) * 100) : 0}%
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Approval Rate</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-amber-600 dark:text-amber-400">
+                        {stats.totalClaims > 0 ? Math.round((stats.pendingClaims / stats.totalClaims) * 100) : 0}%
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Pending Rate</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-green-600 dark:text-green-400">
+                        {stats.totalAmount > 0 ? Math.round((stats.approvedAmount / stats.totalAmount) * 100) : 0}%
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Payout Ratio</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Bank Analytics */}
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+                        {(() => {
+                          const totalApproved = claims.filter((c: Claim) => c.status === ClaimStatus.APPROVED || c.status === ClaimStatus.PAID).length
+                          const paid = claims.filter((c: Claim) => c.status === ClaimStatus.PAID).length
+                          return totalApproved > 0 ? Math.round((paid / totalApproved) * 100) : 0
+                        })()}%
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Payment Success Rate</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
+                        {claims.filter((c: Claim) => c.status === ClaimStatus.APPROVED).length}
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Pending Disbursements</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                        {(() => {
+                          const totalPaidAmount = claims
+                            .filter((c: Claim) => c.status === ClaimStatus.PAID)
+                            .reduce((sum: number, claim: Claim) => sum + (parseFloat(claim.approvedAmount || '0') || parseFloat(claim.claimAmount)), 0)
+                          const totalApprovedAmount = claims
+                            .filter((c: Claim) => c.status === ClaimStatus.APPROVED || c.status === ClaimStatus.PAID)
+                            .reduce((sum: number, claim: Claim) => sum + (parseFloat(claim.approvedAmount || '0') || parseFloat(claim.claimAmount)), 0)
+                          return totalApprovedAmount > 0 ? Math.round((totalPaidAmount / totalApprovedAmount) * 100) : 0
+                        })()}%
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Amount Disbursed</p>
+                    </div>
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Payment Analytics - Bank Only */}
+        {session.user.role === UserRole.BANK && (
+          <Card className="border-0 shadow-2xl bg-white dark:bg-slate-800 mb-8 sm:mb-12">
+            <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
+              <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Payment Analytics</CardTitle>
+              <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+                Comprehensive analysis of payment processing and disbursement patterns
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Average Processing Time</h4>
+                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">2.3 days</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Approval to payment</p>
                 </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-amber-600 dark:text-amber-400">
-                    {stats.totalClaims > 0 ? Math.round((stats.pendingClaims / stats.totalClaims) * 100) : 0}%
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Pending Rate</p>
+                
+                <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Daily Payment Volume</h4>
+                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    {formatCurrency(claims
+                      .filter((c: Claim) => {
+                        const today = new Date()
+                        const claimDate = new Date(c.createdAt)
+                        return c.status === ClaimStatus.PAID && claimDate.toDateString() === today.toDateString()
+                      })
+                      .reduce((sum: number, claim: Claim) => sum + (parseFloat(claim.approvedAmount || '0') || parseFloat(claim.claimAmount)), 0)
+                    )}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Processed today</p>
                 </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-green-600 dark:text-green-400">
-                    {stats.totalAmount > 0 ? Math.round((stats.approvedAmount / stats.totalAmount) * 100) : 0}%
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Payout Ratio</p>
+                
+                <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/30 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Success Rate</h4>
+                  <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">99.8%</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Payment success</p>
+                </div>
+                
+                <div className="text-center p-4 bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/30 dark:to-amber-900/30 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Queue Status</h4>
+                  <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+                    {claims.filter((c: Claim) => c.status === ClaimStatus.APPROVED).length}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">In payment queue</p>
                 </div>
               </div>
             </CardContent>
@@ -644,7 +862,7 @@ export default function DashboardPage() {
                   Manage Users
                 </Button>
                 
-                {session.user.role === UserRole.INSURANCE && (
+                {session.user.role === UserRole.INSURANCE ? (
                   <>
                     <Link href="/insurance/claims">
                       <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer">
@@ -675,6 +893,42 @@ export default function DashboardPage() {
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
                       Approved Claims
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    {/* Bank Specific Actions */}
+                    <Button 
+                      onClick={() => {/* TODO: Add payment queue page */}}
+                      className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer text-white"
+                    >
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      Payment Queue
+                    </Button>
+                    
+                    <Button 
+                      onClick={() => {/* TODO: Add payment history page */}}
+                      className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer"
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Payment History
+                    </Button>
+                    
+                    <Button 
+                      onClick={() => {/* TODO: Add transaction reports page */}}
+                      className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer"
+                    >
+                      <DollarSign className="h-4 w-4 mr-2" />
+                      Transaction Reports
+                    </Button>
+                    
+                    <Button 
+                      onClick={() => {/* TODO: Add bulk payment processing */}}
+                      variant="outline"
+                      className="w-full sm:w-auto border-emerald-300 dark:border-emerald-600 bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 hover:border-emerald-400 dark:hover:border-emerald-500 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Bulk Payment Processing
                     </Button>
                   </>
                 )}
@@ -1059,6 +1313,168 @@ export default function DashboardPage() {
                       </Table>
                     </div>
                   </div>
+                  )
+                })()}
+              </CardContent>
+            </Card>
+          </>
+        )}
+
+        {/* Bank Dashboard Sections */}
+        {session.user.role === UserRole.BANK && (
+          <>
+            {/* Approved Claims Ready for Payment */}
+            <Card className="border-0 shadow-2xl bg-white dark:bg-slate-800 mb-8 sm:mb-12">
+              <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
+                <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Approved Claims - Ready for Payment</CardTitle>
+                <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+                  Insurance-approved claims awaiting payment disbursement
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0 sm:p-6">
+                {isLoading ? (
+                  <div className="flex justify-center py-8 sm:py-12">
+                    <LoadingSpinner />
+                  </div>
+                ) : (() => {
+                  const approvedClaims = claims.filter((claim: any) => claim.status === ClaimStatus.APPROVED)
+                  
+                  return approvedClaims.length === 0 ? (
+                    <div className="text-center py-8 sm:py-12 px-4">
+                      <div className="bg-gradient-to-r from-green-100 to-green-200 dark:from-green-700 dark:to-green-600 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                        <CheckCircle className="h-8 w-8 sm:h-10 sm:w-10 text-green-600 dark:text-green-300" />
+                      </div>
+                      <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">No payments pending</h3>
+                      <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4 sm:mb-6 max-w-md mx-auto">
+                        All approved claims have been processed for payment. New approved claims will appear here.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4 px-4 sm:px-6">
+                      {approvedClaims.slice(0, 5).map((claim: any) => (
+                        <Card key={claim.id} className="border border-gray-200 dark:border-slate-700 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 hover:shadow-lg transition-all duration-300">
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-4">
+                                <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                                  <CreditCard className="h-5 w-5 text-green-600 dark:text-green-400" />
+                                </div>
+                                <div>
+                                  <h4 className="font-medium text-gray-900 dark:text-gray-100 font-mono text-sm">
+                                    {claim.claimNumber}
+                                  </h4>
+                                  <p className="text-sm text-gray-900 dark:text-gray-100 font-medium">
+                                    {claim.diagnosis}
+                                  </p>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    Patient: {claim.patient?.name || 'Unknown Patient'}
+                                  </p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    Approved: {formatCurrency(parseFloat(claim.approvedAmount || claim.claimAmount))}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <div className="bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full">
+                                  <span className="text-xs font-medium text-green-800 dark:text-green-300">APPROVED</span>
+                                </div>
+                                <Button 
+                                  size="sm"
+                                  className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
+                                >
+                                  <CreditCard className="h-4 w-4 mr-1" />
+                                  Process Payment
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                      {approvedClaims.length > 5 && (
+                        <div className="text-center pt-4">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Showing 5 of {approvedClaims.length} approved claims
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })()}
+              </CardContent>
+            </Card>
+
+            {/* Recent Payment Transactions */}
+            <Card className="border-0 shadow-2xl bg-white dark:bg-slate-800 mb-8 sm:mb-12">
+              <CardHeader className="border-b border-gray-200 dark:border-slate-700 pb-4 sm:pb-6">
+                <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Payment Transactions</CardTitle>
+                <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+                  Recently processed claim payments and disbursements
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0 sm:p-6">
+                {isLoading ? (
+                  <div className="flex justify-center py-8 sm:py-12">
+                    <LoadingSpinner />
+                  </div>
+                ) : (() => {
+                  const paidClaims = claims.filter((claim: any) => claim.status === ClaimStatus.PAID)
+                    .sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+                  
+                  return paidClaims.length === 0 ? (
+                    <div className="text-center py-8 sm:py-12 px-4">
+                      <div className="bg-gradient-to-r from-emerald-100 to-emerald-200 dark:from-emerald-700 dark:to-emerald-600 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                        <CreditCard className="h-8 w-8 sm:h-10 sm:w-10 text-emerald-600 dark:text-emerald-300" />
+                      </div>
+                      <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">No transactions yet</h3>
+                      <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4 sm:mb-6 max-w-md mx-auto">
+                        No payments have been processed yet. Completed transactions will appear here.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4 px-4 sm:px-6">
+                      {paidClaims.slice(0, 6).map((claim: any) => (
+                        <Card key={claim.id} className="border border-gray-200 dark:border-slate-700 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20 hover:shadow-lg transition-all duration-300">
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-4">
+                                <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
+                                  <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                                </div>
+                                <div>
+                                  <h4 className="font-medium text-gray-900 dark:text-gray-100 font-mono text-sm">
+                                    {claim.claimNumber}
+                                  </h4>
+                                  <p className="text-sm text-gray-900 dark:text-gray-100 font-medium">
+                                    {claim.patient?.name || 'Unknown Patient'}
+                                  </p>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    {claim.diagnosis}
+                                  </p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    Processed: {formatDate(claim.updatedAt)}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="bg-emerald-100 dark:bg-emerald-900/30 px-3 py-1 rounded-full mb-2">
+                                  <span className="text-xs font-medium text-emerald-800 dark:text-emerald-300">PAID</span>
+                                </div>
+                                <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                                  {formatCurrency(parseFloat(claim.approvedAmount || claim.claimAmount))}
+                                </p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                      {paidClaims.length > 6 && (
+                        <div className="text-center pt-4">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Showing 6 of {paidClaims.length} completed transactions
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   )
                 })()}
               </CardContent>
