@@ -458,7 +458,10 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+              <Card 
+                className="border-0 shadow-lg bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+                onClick={() => session?.user?.role === UserRole.INSURANCE && router.push('/insurance/approved-claims')}
+              >
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
                   <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Approved</CardTitle>
                   <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded-lg">
@@ -467,7 +470,9 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400">{stats.approvedClaims}</div>
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Successfully processed</p>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    {session?.user?.role === UserRole.INSURANCE ? 'Click to view approved claims' : 'Successfully processed'}
+                  </p>
                 </CardContent>
               </Card>
 
@@ -630,12 +635,14 @@ export default function DashboardPage() {
 
             {(session.user.role === UserRole.INSURANCE || session.user.role === UserRole.BANK) && (
               <>
-                <Link href="/users">
-                  <Button variant="outline" className="w-full sm:w-auto border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-300 hover:scale-[1.02] cursor-pointer">
-                    <Users className="h-4 w-4 mr-2" />
-                    Manage Users
-                  </Button>
-                </Link>
+                <Button 
+                  onClick={() => router.push('/insurance/manage-users')}
+                  variant="outline" 
+                  className="w-full sm:w-auto border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+                >
+                  <Users className="h-4 w-4 mr-2" />
+                  Manage Users
+                </Button>
                 
                 {session.user.role === UserRole.INSURANCE && (
                   <>
@@ -664,8 +671,7 @@ export default function DashboardPage() {
                     
                     <Button 
                       onClick={() => router.push('/insurance/approved-claims')}
-                      variant="outline" 
-                      className="w-full sm:w-auto border-green-300 dark:border-green-600 bg-white dark:bg-slate-800 hover:bg-green-50 dark:hover:bg-green-950/20 hover:border-green-400 dark:hover:border-green-500 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+                      className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer text-white"
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
                       Approved Claims
