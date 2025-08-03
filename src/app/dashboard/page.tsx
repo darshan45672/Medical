@@ -1348,6 +1348,179 @@ export default function DashboardPage() {
         {/* Bank Dashboard Sections */}
         {session.user.role === UserRole.BANK && (
           <>
+            {/* Approved Claims Ready for Payment */}
+            <Card className="border-0 shadow-2xl bg-gradient-to-br from-white via-slate-50 to-green-50 dark:from-slate-900 dark:via-slate-800 dark:to-green-950 mb-8 sm:mb-12 overflow-hidden">
+              <CardHeader className="relative bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 text-white p-8">
+                <div className="absolute inset-0 bg-black/10"></div>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl border border-white/30">
+                        <CheckCircle className="h-8 w-8 text-white" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-3xl font-bold text-white mb-2">
+                          Approved Claims
+                        </CardTitle>
+                        <CardDescription className="text-green-100 text-lg">
+                          Claims approved by insurance, ready for payment processing
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-4xl font-bold text-white">
+                        {claims.filter((claim: any) => claim.status === 'APPROVED').length}
+                      </div>
+                      <p className="text-green-100">Ready</p>
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0 sm:p-6">
+                {isLoading ? (
+                  <div className="flex justify-center py-8 sm:py-12">
+                    <EnhancedLoadingSpinner variant="gradient" size="lg" text="Loading approved claims..." />
+                  </div>
+                ) : (() => {
+                  const approvedClaims = claims.filter((claim: any) => claim.status === 'APPROVED')
+                  
+                  return approvedClaims.length === 0 ? (
+                    <div className="text-center py-12 px-6">
+                      <div className="relative mx-auto w-32 h-32 mb-6">
+                        <div className="absolute inset-0 bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 rounded-full shadow-lg"></div>
+                        <div className="absolute inset-4 bg-gradient-to-br from-green-200 to-emerald-200 dark:from-green-800/50 dark:to-emerald-800/50 rounded-full flex items-center justify-center">
+                          <CheckCircle className="h-12 w-12 text-green-600 dark:text-green-400" />
+                        </div>
+                      </div>
+                      <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">No Approved Claims</h3>
+                      <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto text-lg">
+                        No claims have been approved for payment yet. Approved claims will appear here automatically.
+                      </p>
+                      <div className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border border-green-200 dark:border-green-800">
+                        <Clock className="h-5 w-5 text-green-600 dark:text-green-400" />
+                        <span className="text-green-700 dark:text-green-300 font-semibold">Waiting for approvals</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700">
+                      <Table>
+                        <TableHeader className="bg-gradient-to-r from-gray-50 to-slate-50 dark:from-slate-700 dark:to-slate-800">
+                          <TableRow className="border-gray-200 dark:border-slate-600">
+                            <TableHead className="text-left text-gray-700 dark:text-gray-300 font-semibold py-4 px-4 sm:px-6">Claim #</TableHead>
+                            <TableHead className="text-left text-gray-700 dark:text-gray-300 font-semibold py-4 px-4 sm:px-6">Patient</TableHead>
+                            <TableHead className="text-left text-gray-700 dark:text-gray-300 font-semibold py-4 px-4 sm:px-6">Diagnosis</TableHead>
+                            <TableHead className="text-left text-gray-700 dark:text-gray-300 font-semibold py-4 px-4 sm:px-6">Amount</TableHead>
+                            <TableHead className="text-left text-gray-700 dark:text-gray-300 font-semibold py-4 px-4 sm:px-6">Approved</TableHead>
+                            <TableHead className="text-left text-gray-700 dark:text-gray-300 font-semibold py-4 px-4 sm:px-6">Status</TableHead>
+                            <TableHead className="text-right text-gray-700 dark:text-gray-300 font-semibold py-4 px-4 sm:px-6">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {approvedClaims.map((claim: any, index: number) => (
+                            <TableRow 
+                              key={claim.id} 
+                              className={`border-gray-200 dark:border-slate-700 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 dark:hover:from-green-950/20 dark:hover:to-emerald-950/20 transition-all duration-200 ${
+                                index % 2 === 0 ? 'bg-white dark:bg-slate-800' : 'bg-gray-50/50 dark:bg-slate-800/50'
+                              }`}
+                            >
+                              <TableCell className="font-mono text-sm font-medium text-gray-900 dark:text-gray-100 py-4 px-4 sm:px-6">
+                                {claim.claimNumber}
+                              </TableCell>
+                              <TableCell className="text-gray-700 dark:text-gray-200 py-4 px-4 sm:px-6 font-medium">
+                                {claim.patient?.name || claim.patientName || 'N/A'}
+                              </TableCell>
+                              <TableCell className="text-gray-700 dark:text-gray-200 py-4 px-4 sm:px-6">
+                                <span className="line-clamp-2">{claim.diagnosis}</span>
+                              </TableCell>
+                              <TableCell className="text-gray-700 dark:text-gray-200 py-4 px-4 sm:px-6 font-semibold">
+                                {formatCurrency(parseFloat(claim.claimAmount))}
+                              </TableCell>
+                              <TableCell className="text-green-600 dark:text-green-400 py-4 px-4 sm:px-6 font-semibold">
+                                {formatCurrency(parseFloat(claim.approvedAmount || claim.claimAmount))}
+                              </TableCell>
+                              <TableCell className="py-4 px-4 sm:px-6">
+                                <StatusBadge status={claim.status} />
+                              </TableCell>
+                              <TableCell className="text-right py-4 px-4 sm:px-6">
+                                <div className="flex gap-2 justify-end">
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleViewClaimDetails(claim.id)}
+                                    variant="outline"
+                                    className="border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700"
+                                  >
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    View
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    onClick={async () => {
+                                      try {
+                                        // Show processing state
+                                        toast.info('Processing payment...')
+                                        
+                                        // First create payment record with PROCESSING status
+                                        const paymentResponse = await fetch('/api/payments', {
+                                          method: 'POST',
+                                          headers: {
+                                            'Content-Type': 'application/json',
+                                          },
+                                          body: JSON.stringify({
+                                            claimId: claim.id,
+                                            amount: parseFloat(claim.approvedAmount || claim.claimAmount),
+                                            paymentMethod: 'BANK_TRANSFER',
+                                            notes: `Payment processed for claim ${claim.claimNumber}`
+                                          }),
+                                        })
+
+                                        if (!paymentResponse.ok) {
+                                          const errorData = await paymentResponse.json()
+                                          throw new Error(errorData.error || 'Failed to create payment record')
+                                        }
+
+                                        const paymentData = await paymentResponse.json()
+                                        console.log('Payment created:', paymentData)
+
+                                        // Then update claim status to PAID
+                                        const statusResponse = await fetch(`/api/claims/${claim.id}`, {
+                                          method: 'PATCH',
+                                          headers: {
+                                            'Content-Type': 'application/json',
+                                          },
+                                          body: JSON.stringify({ status: 'PAID' }),
+                                        })
+
+                                        if (!statusResponse.ok) {
+                                          throw new Error('Failed to update claim status')
+                                        }
+
+                                        toast.success('Payment is now processing!')
+                                        // Refresh both claims and payments data
+                                        queryClient.invalidateQueries({ queryKey: ['claims'] })
+                                        refetchPayments()
+                                      } catch (error) {
+                                        console.error('Error processing payment:', error)
+                                        toast.error(`Failed to process payment: ${error.message}`)
+                                      }
+                                    }}
+                                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-md hover:shadow-lg transition-all duration-200"
+                                  >
+                                    <CreditCard className="h-4 w-4 mr-1" />
+                                    Process Payment
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )
+                })()}
+              </CardContent>
+            </Card>
+
             {/* Payment Queue - Pending Payments */}
             <Card className="border-0 shadow-2xl bg-gradient-to-br from-white via-slate-50 to-blue-50 dark:from-slate-900 dark:via-slate-800 dark:to-blue-950 mb-8 sm:mb-12 overflow-hidden">
               <CardHeader className="relative bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 text-white p-8">
@@ -1364,15 +1537,15 @@ export default function DashboardPage() {
                           Payment Queue
                         </CardTitle>
                         <CardDescription className="text-amber-100 text-lg">
-                          Approved claims ready for immediate processing
+                          Payments currently being processed
                         </CardDescription>
                       </div>
                     </div>
                     <div className="text-right">
                       <div className="text-4xl font-bold text-white">
-                        {paymentsData?.filter((payment: any) => payment.status === 'PENDING').length || 0}
+                        {paymentsData?.filter((payment: any) => payment.status === 'PROCESSING').length || 0}
                       </div>
-                      <p className="text-amber-100">Pending</p>
+                      <p className="text-amber-100">Processing</p>
                     </div>
                   </div>
                 </div>
@@ -1383,9 +1556,9 @@ export default function DashboardPage() {
                     <EnhancedLoadingSpinner variant="gradient" size="lg" text="Loading payment queue..." />
                   </div>
                 ) : (() => {
-                  const pendingPayments = paymentsData?.filter((payment: any) => payment.status === 'PENDING') || []
+                  const processingPayments = paymentsData?.filter((payment: any) => payment.status === 'PROCESSING') || []
                   
-                  return pendingPayments.length === 0 ? (
+                  return processingPayments.length === 0 ? (
                     <div className="text-center py-12 px-6">
                       <div className="relative mx-auto w-32 h-32 mb-6">
                         <div className="absolute inset-0 bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 rounded-full shadow-lg"></div>
@@ -1393,9 +1566,9 @@ export default function DashboardPage() {
                           <Clock className="h-12 w-12 text-amber-600 dark:text-amber-400" />
                         </div>
                       </div>
-                      <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">No Pending Payments</h3>
+                      <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">No Processing Payments</h3>
                       <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto text-lg">
-                        All approved claims have been processed. New pending payments will appear here automatically.
+                        No payments are currently being processed. Payments will appear here when processing starts.
                       </p>
                       <div className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
                         <Sparkles className="h-5 w-5 text-amber-600 dark:text-amber-400" />
@@ -1411,12 +1584,12 @@ export default function DashboardPage() {
                             <TableHead className="text-left text-gray-700 dark:text-gray-300 font-semibold py-4 px-4 sm:px-6">Patient</TableHead>
                             <TableHead className="text-left text-gray-700 dark:text-gray-300 font-semibold py-4 px-4 sm:px-6">Amount</TableHead>
                             <TableHead className="text-left text-gray-700 dark:text-gray-300 font-semibold py-4 px-4 sm:px-6">Status</TableHead>
-                            <TableHead className="text-left text-gray-700 dark:text-gray-300 font-semibold py-4 px-4 sm:px-6">Date</TableHead>
+                            <TableHead className="text-left text-gray-700 dark:text-gray-300 font-semibold py-4 px-4 sm:px-6">Started</TableHead>
                             <TableHead className="text-right text-gray-700 dark:text-gray-300 font-semibold py-4 px-4 sm:px-6">Actions</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {pendingPayments.map((payment: any, index: number) => (
+                          {processingPayments.map((payment: any, index: number) => (
                             <TableRow 
                               key={payment.id} 
                               className={`border-gray-200 dark:border-slate-700 hover:bg-gradient-to-r hover:from-amber-50 hover:to-yellow-50 dark:hover:from-amber-950/20 dark:hover:to-yellow-950/20 transition-all duration-200 ${
@@ -1436,110 +1609,9 @@ export default function DashboardPage() {
                                 <PaymentStatusBadge status={payment.status} size="sm" />
                               </TableCell>
                               <TableCell className="text-gray-700 dark:text-gray-200 py-4 px-4 sm:px-6 text-sm">
-                                {formatDate(payment.createdAt)}
+                                {formatDate(payment.processedAt || payment.createdAt)}
                               </TableCell>
                               <TableCell className="text-right py-4 px-4 sm:px-6">
-                                <EnhancedActionButton
-                                  action="process"
-                                  size="sm"
-                                  onClick={() => {
-                                    setSelectedPaymentId(payment.id)
-                                    setIsPaymentModalOpen(true)
-                                  }}
-                                />
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  )
-                })()}
-              </CardContent>
-            </Card>
-
-            {/* Processing Payments */}
-            <Card className="border-0 shadow-2xl bg-gradient-to-br from-white via-slate-50 to-blue-50 dark:from-slate-900 dark:via-slate-800 dark:to-blue-950 mb-8 sm:mb-12 overflow-hidden">
-              <CardHeader className="relative bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white p-8">
-                <div className="absolute inset-0 bg-black/10"></div>
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full blur-2xl"></div>
-                <div className="relative z-10">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl border border-white/30">
-                        <Activity className="h-8 w-8 text-white animate-pulse" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-3xl font-bold text-white mb-2">
-                          Active Processing
-                        </CardTitle>
-                        <CardDescription className="text-blue-100 text-lg">
-                          Payments currently being processed in real-time
-                        </CardDescription>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-4xl font-bold text-white">
-                        {paymentsData?.filter((payment: any) => payment.status === 'PROCESSING').length || 0}
-                      </div>
-                      <p className="text-blue-100">Processing</p>
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0 sm:p-6">
-                {isLoadingPayments ? (
-                  <div className="flex justify-center py-8 sm:py-12">
-                    <EnhancedLoadingSpinner variant="gradient" size="lg" text="Loading processing payments..." />
-                  </div>
-                ) : (() => {
-                  const processingPayments = paymentsData?.filter((payment: any) => payment.status === 'PROCESSING') || []
-                  
-                  return processingPayments.length === 0 ? (
-                    <div className="text-center py-8 sm:py-12 px-4">
-                      <div className="bg-gradient-to-r from-blue-100 to-blue-200 dark:from-blue-700 dark:to-blue-600 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
-                        <Settings className="h-8 w-8 sm:h-10 sm:w-10 text-blue-600 dark:text-blue-300" />
-                      </div>
-                      <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">No payments processing</h3>
-                      <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">No payments are currently being processed</p>
-                    </div>
-                  ) : (
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow className="border-gray-200 dark:border-slate-700">
-                            <TableHead className="text-left text-gray-600 dark:text-gray-300 font-semibold py-3 px-2 sm:px-4">Claim ID</TableHead>
-                            <TableHead className="text-left text-gray-600 dark:text-gray-300 font-semibold py-3 px-2 sm:px-4">Patient</TableHead>
-                            <TableHead className="text-left text-gray-600 dark:text-gray-300 font-semibold py-3 px-2 sm:px-4">Amount</TableHead>
-                            <TableHead className="text-left text-gray-600 dark:text-gray-300 font-semibold py-3 px-2 sm:px-4">Status</TableHead>
-                            <TableHead className="text-left text-gray-600 dark:text-gray-300 font-semibold py-3 px-2 sm:px-4">Started</TableHead>
-                            <TableHead className="text-left text-gray-600 dark:text-gray-300 font-semibold py-3 px-2 sm:px-4">Processed By</TableHead>
-                            <TableHead className="text-right text-gray-600 dark:text-gray-300 font-semibold py-3 px-2 sm:px-4">Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {processingPayments.map((payment: any) => (
-                            <TableRow key={payment.id} className="border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
-                              <TableCell className="font-medium text-gray-900 dark:text-gray-100 py-3 px-2 sm:px-4">
-                                {payment.claimId.substring(0, 8)}...
-                              </TableCell>
-                              <TableCell className="text-gray-700 dark:text-gray-200 py-3 px-2 sm:px-4">
-                                {payment.claim?.patient?.name || 'N/A'}
-                              </TableCell>
-                              <TableCell className="text-gray-700 dark:text-gray-200 py-3 px-2 sm:px-4">
-                                {formatCurrency(payment.amount)}
-                              </TableCell>
-                              <TableCell className="py-3 px-2 sm:px-4">
-                                <PaymentStatusBadge status={payment.status} />
-                              </TableCell>
-                              <TableCell className="text-gray-700 dark:text-gray-200 py-3 px-2 sm:px-4">
-                                {payment.processedAt ? formatDate(payment.processedAt) : 'N/A'}
-                              </TableCell>
-                              <TableCell className="text-gray-700 dark:text-gray-200 py-3 px-2 sm:px-4">
-                                {payment.processedBy?.name || 'N/A'}
-                              </TableCell>
-                              <TableCell className="text-right py-3 px-2 sm:px-4">
                                 <EnhancedActionButton
                                   action="manage"
                                   size="sm"
@@ -1558,6 +1630,9 @@ export default function DashboardPage() {
                 })()}
               </CardContent>
             </Card>
+
+            {/* Processing Payments - Remove this section since Payment Queue now handles it */}
+            {/* This section is removed - Payment Queue now shows PROCESSING payments */}
 
             {/* Recent Payment Transactions */}
             <Card className="border-0 shadow-2xl bg-gradient-to-br from-white via-slate-50 to-emerald-50 dark:from-slate-900 dark:via-slate-800 dark:to-emerald-950 mb-8 sm:mb-12 overflow-hidden">

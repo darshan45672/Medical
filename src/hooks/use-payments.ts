@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { PaymentStatus } from '@/types'
+import { useSession } from 'next-auth/react'
 
 interface Payment {
   id: string
@@ -29,11 +30,22 @@ interface UsePaymentsParams {
 }
 
 export function usePayments({ status, limit = 50 }: UsePaymentsParams = {}) {
+  const { data: session } = useSession()
   const [payments, setPayments] = useState<Payment[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const fetchPayments = async () => {
+    // Only fetch payments for bank, insurance, or patient users
+    if (!session?.user || (
+      session.user.role !== 'BANK' && 
+      session.user.role !== 'INSURANCE' && 
+      session.user.role !== 'PATIENT'
+    )) {
+      setIsLoading(false)
+      return
+    }
+
     try {
       setIsLoading(true)
       setError(null)
@@ -138,8 +150,10 @@ export function usePayments({ status, limit = 50 }: UsePaymentsParams = {}) {
   }
 
   useEffect(() => {
-    fetchPayments()
-  }, [status, limit])
+    if (session?.user) {
+      fetchPayments()
+    }
+  }, [status, limit, session?.user])
 
   return {
     payments,

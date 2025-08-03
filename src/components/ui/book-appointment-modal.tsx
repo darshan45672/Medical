@@ -30,9 +30,13 @@ interface AppointmentFormData {
 export function BookAppointmentModal({ open, onOpenChange }: BookAppointmentModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const createAppointment = useCreateAppointment()
-  const { data: doctorsData, isLoading: doctorsLoading, error: doctorsError } = useUsers({ role: UserRole.DOCTOR })
+  const { data: doctorsResponse, isLoading: doctorsLoading, error: doctorsError } = useUsers({ role: UserRole.DOCTOR })
+  
+  // Extract doctors array from response
+  const doctorsData = doctorsResponse?.users || []
   
   // Debug logging
+  console.log('Doctors response:', doctorsResponse)
   console.log('Doctors data:', doctorsData)
   console.log('Is array:', Array.isArray(doctorsData))
   console.log('Doctors error:', doctorsError)
@@ -161,7 +165,7 @@ export function BookAppointmentModal({ open, onOpenChange }: BookAppointmentModa
                       </SelectItem>
                     ))
                   ) : (
-                    <SelectItem value="" disabled>
+                    <SelectItem value="no-doctors" disabled>
                       No doctors available
                     </SelectItem>
                   )}
@@ -228,33 +232,13 @@ export function BookAppointmentModal({ open, onOpenChange }: BookAppointmentModa
                 <Input
                   id="scheduledTime"
                   type="time"
-                  min={isToday ? currentTime : '09:00'}
-                  max="17:00"
-                  step="900" // 15-minute intervals
                   className={`h-12 pl-4 pr-4 border-2 transition-all duration-200 text-gray-900 dark:text-gray-100 bg-white dark:bg-slate-800 ${
                     errors.scheduledTime 
                       ? 'border-red-300 dark:border-red-600 focus:border-red-500 dark:focus:border-red-400 focus:ring-red-200 dark:focus:ring-red-800' 
                       : 'border-gray-300 dark:border-slate-600 focus:border-orange-500 dark:focus:border-orange-400 focus:ring-orange-200 dark:focus:ring-orange-800 hover:border-orange-400 dark:hover:border-orange-500'
                   } focus:ring-2 rounded-lg shadow-sm font-medium`}
                   {...register('scheduledTime', { 
-                    required: 'Please select an appointment time',
-                    validate: (value) => {
-                      const [hours, minutes] = value.split(':').map(Number);
-                      const timeInMinutes = hours * 60 + minutes;
-                      const minTime = 9 * 60; // 9:00 AM
-                      const maxTime = 17 * 60; // 5:00 PM
-                      
-                      if (timeInMinutes < minTime || timeInMinutes > maxTime) {
-                        return 'Please select a time between 9:00 AM and 5:00 PM';
-                      }
-                      
-                      // Check if it's a 15-minute interval
-                      if (minutes % 15 !== 0) {
-                        return 'Please select a time in 15-minute intervals';
-                      }
-                      
-                      return true;
-                    }
+                    required: 'Please select an appointment time'
                   })}
                 />
               </div>
@@ -265,32 +249,11 @@ export function BookAppointmentModal({ open, onOpenChange }: BookAppointmentModa
                 </p>
               )}
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Available: 9:00 AM - 5:00 PM (15-min intervals)
+                Select your preferred appointment time
               </p>
             </div>
           </div>
           
-          {/* Quick Time Slots */}
-          <div className="space-y-3">
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Quick Time Selection
-            </Label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {['09:00', '11:00', '14:00', '16:00'].map((time) => (
-                <Button
-                  key={time}
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setValue('scheduledTime', time)}
-                  className="h-9 text-xs font-medium border-gray-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-all duration-200"
-                >
-                  {new Date(`2000-01-01T${time}`).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })}
-                </Button>
-              ))}
-            </div>
-          </div>
-
           {/* Notes */}
           <div className="space-y-2">
             <Label htmlFor="notes" className="text-sm font-medium">

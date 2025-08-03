@@ -12,11 +12,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Only bank users can view payments
-    if (session.user.role !== UserRole.BANK) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
-
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status') as PaymentStatus | null
     const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 50
@@ -24,6 +19,20 @@ export async function GET(request: NextRequest) {
     const whereClause: any = {}
     if (status) {
       whereClause.status = status
+    }
+
+    // Restrict payments based on user role
+    if (session.user.role === UserRole.PATIENT) {
+      // Patients can only see their own payments
+      whereClause.claim = {
+        patientId: session.user.id
+      }
+    } else if (session.user.role === UserRole.INSURANCE) {
+      // Insurance can see all payments for their processed claims
+      // Add any specific filtering if needed
+    } else if (session.user.role !== UserRole.BANK) {
+      // Other roles not allowed
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const payments = await prisma.payment.findMany({
@@ -73,25 +82,50 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { claimId, amount, paymentMethod, notes } = body
 
+    console.log('Payment creation request:', { claimId, amount, paymentMethod, notes })
+
     if (!claimId || !amount) {
+      console.log('Missing required fields:', { claimId: !!claimId, amount: !!amount })
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       )
     }
 
-    // Verify claim exists and is approved
+    // Verify claim exists and is approved or paid
     const claim = await prisma.claim.findUnique({
       where: { id: claimId }
     })
+
+    console.log('Found claim:', { id: claim?.id, status: claim?.status })
 
     if (!claim) {
       return NextResponse.json({ error: 'Claim not found' }, { status: 404 })
     }
 
-    if (claim.status !== 'APPROVED') {
+    if (!['APPROVED', 'PAID'].includes(claim.status)) {
+      console.log('Invalid claim status:', claim.status)
       return NextResponse.json(
-        { error: 'Can only create payments for approved claims' },
+        { error: 'Can only create payments for approved or paid claims' },
+        { status: 400 }
+      )
+    }
+
+    // Check if payment already exists for this claim
+    const existingPayment = await prisma.payment.findFirst({
+      where: { 
+        claimId,
+        status: {
+          in: ['PENDING', 'PROCESSING', 'COMPLETED']
+        }
+      }
+    })
+
+    console.log('Existing payment check:', { exists: !!existingPayment, paymentId: existingPayment?.id })
+
+    if (existingPayment) {
+      return NextResponse.json(
+        { error: 'Payment already exists for this claim' },
         { status: 400 }
       )
     }
@@ -100,10 +134,11 @@ export async function POST(request: NextRequest) {
       data: {
         claimId,
         amount: parseFloat(amount),
-        status: PaymentStatus.PENDING,
+        status: PaymentStatus.PROCESSING, // Set to PROCESSING when bank initiates payment
         paymentMethod,
         notes,
-        processedBy: session.user.id
+        processedBy: session.user.id,
+        processedAt: new Date() // Record when processing started
       },
       include: {
         claim: {
