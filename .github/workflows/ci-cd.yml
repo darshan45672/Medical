@@ -1,1 +1,42 @@
+name: CI/CD Pipeline with Comprehensive Security
 
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+  schedule:
+    - cron: '0 2 * * 0'
+
+permissions:
+  contents: write
+  security-events: write
+  actions: read
+
+jobs:
+  gitleaks:
+    name: Secret Detection
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/repo \
+            zricethezav/gitleaks:latest \
+            detect --source /repo --no-git --verbose --report-format json --report-path /repo/gitleaks-report.json
+
+      - name: Upload Gitleaks report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-report
+          path: gitleaks-report.json
