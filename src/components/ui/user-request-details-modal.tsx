@@ -9,8 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
@@ -27,7 +26,6 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  Eye,
   Activity,
   AlertCircle
 } from 'lucide-react'
@@ -72,7 +70,6 @@ export function UserRequestDetailsModal({
   request,
   onStatusChange
 }: UserRequestDetailsModalProps) {
-  const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
 
   if (!request) return null
@@ -99,22 +96,6 @@ export function UserRequestDetailsModal({
       toast.error('Failed to update claim status')
     } finally {
       setIsUpdating(false)
-    }
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'APPROVED':
-      case 'PAID':
-        return 'text-green-600 dark:text-green-400'
-      case 'REJECTED':
-        return 'text-red-600 dark:text-red-400'
-      case 'UNDER_REVIEW':
-        return 'text-yellow-600 dark:text-yellow-400'
-      case 'SUBMITTED':
-        return 'text-blue-600 dark:text-blue-400'
-      default:
-        return 'text-gray-600 dark:text-gray-400'
     }
   }
 

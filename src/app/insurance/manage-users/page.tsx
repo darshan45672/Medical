@@ -626,7 +626,7 @@ export default function ManageUsersPage() {
                 Showing {filteredUsers.length} of {users.length} users
                 {searchTerm && (
                   <span className="ml-2 text-blue-600 dark:text-blue-400">
-                    • Searching for: "{searchTerm}"
+                    • Searching for: &quot;{searchTerm}&quot;
                   </span>
                 )}
               </p>

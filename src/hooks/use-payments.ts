@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { PaymentStatus } from '@/types'
 import { useSession } from 'next-auth/react'
 
@@ -35,7 +35,7 @@ export function usePayments({ status, limit = 50 }: UsePaymentsParams = {}) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchPayments = async () => {
+  const fetchPayments = useCallback(async () => {
     // Only fetch payments for bank, insurance, or patient users
     if (!session?.user || (
       session.user.role !== 'BANK' && 
@@ -68,7 +68,7 @@ export function usePayments({ status, limit = 50 }: UsePaymentsParams = {}) {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [session?.user, status, limit])
 
   const updatePaymentStatus = async (
     paymentId: string,
@@ -153,7 +153,7 @@ export function usePayments({ status, limit = 50 }: UsePaymentsParams = {}) {
     if (session?.user) {
       fetchPayments()
     }
-  }, [status, limit, session?.user])
+  }, [status, limit, session?.user, fetchPayments])
 
   return {
     payments,

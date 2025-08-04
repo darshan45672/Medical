@@ -13,9 +13,7 @@ import { Header } from '@/components/layout/header'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import { toast } from 'sonner'
 import { 
-  Users, 
   Search, 
-  Eye, 
   CheckCircle, 
   XCircle,
   FileText,
@@ -433,7 +431,7 @@ export default function ApprovedClaimsPage() {
                 Showing {filteredClaims.length} of {approvedClaims.length} approved claims
                 {searchTerm && (
                   <span className="ml-2 text-blue-600 dark:text-blue-400">
-                    • Searching for: "{searchTerm}"
+                    • Searching for: &quot;{searchTerm}&quot;
                   </span>
                 )}
               </p>

@@ -51,7 +51,7 @@ const EnhancedActionButton = forwardRef<HTMLButtonElement, EnhancedActionButtonP
           sizeClasses[size],
           variant === "default" && actionStyles[action],
           "relative transition-all duration-300 transform hover:scale-105 focus:scale-105",
-          "backdrop-blur-sm border-0 rounded-lg font-semibold",
+          "backdrop-blur-sm border-0 rounded-lg font-semibold cursor-pointer",
           "focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50",
           loading && "cursor-not-allowed opacity-80",
           className

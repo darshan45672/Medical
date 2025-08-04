@@ -4,7 +4,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -22,8 +21,6 @@ import { PaymentStatusBadge } from './payment-status-badge'
 import { GradientButton } from './gradient-button'
 import { toast } from 'sonner'
 import { 
-  CreditCard, 
-  DollarSign, 
   Calendar,
   User,
   FileText,
@@ -38,14 +35,12 @@ import {
   ArrowRight,
   Zap,
   Copy,
-  ExternalLink,
   Activity,
   Banknote,
   Timer,
   CheckCheck,
   Receipt,
-  CreditCardIcon,
-  Wallet
+  CreditCardIcon
 } from 'lucide-react'
 
 interface PaymentManagementModalProps {

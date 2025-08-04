@@ -20,6 +20,7 @@ import { NewClaimModal } from '@/components/ui/new-claim-modal'
 import { CreatePatientReportModal } from '@/components/ui/create-patient-report-modal'
 import { Carousel } from '@/components/ui/carousel'
 import { Header } from '@/components/layout/header'
+import { PWAInstall } from '@/components/ui/pwa-install'
 import { useClaims, useClaim } from '@/hooks/use-claims'
 import { usePayments } from '@/hooks/use-payments'
 import { useAppointments } from '@/hooks/use-appointments'
@@ -44,8 +45,7 @@ import {
   Settings,
   Eye,
   CreditCard,
-  Sparkles,
-  Activity
+  Sparkles
 } from 'lucide-react'
 import Link from 'next/link'
 import { Claim, AppointmentStatus, ClaimStatus, UserRole } from '@/types'
@@ -344,6 +344,11 @@ export default function DashboardPage() {
               {getWelcomeMessage()}
             </p>
           </div>
+        </div>
+
+        {/* PWA Install Prompt */}
+        <div className="mb-6">
+          <PWAInstall variant="banner" />
         </div>
 
         {/* Stats Cards */}

@@ -11,20 +11,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { EnhancedLoadingSpinner } from '@/components/ui/enhanced-loading-spinner'
 import { PaymentStatusBadge } from '@/components/ui/payment-status-badge'
-import { EnhancedActionButton } from '@/components/ui/enhanced-action-button'
 import { PaymentManagementModal } from '@/components/ui/payment-management-modal'
 import { usePayments } from '@/hooks/use-payments'
-import { PaymentStatus } from '@/types'
 import { 
   ArrowLeft, 
   Search, 
   Filter, 
   RefreshCw, 
   History, 
-  CreditCard,
   SortAsc,
   SortDesc,
-  Calendar,
   DollarSign,
   AlertCircle,
   CheckCircle2,
@@ -73,7 +69,7 @@ export default function PaymentHistoryPage() {
     try {
       await refetch()
       toast.success('Payment history refreshed')
-    } catch (error) {
+    } catch {
       toast.error('Failed to refresh payment history')
     } finally {
       setIsRefreshing(false)

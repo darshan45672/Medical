@@ -16,7 +16,6 @@ import { toast } from 'sonner'
 import { 
   Users, 
   Search, 
-  Filter, 
   Eye, 
   Clock, 
   CheckCircle, 
@@ -77,7 +76,6 @@ export default function ClaimRequestsPage() {
   }, [status, session, router])
 
   const determineOverallStatus = (claims: any[]): 'PENDING' | 'APPROVED' | 'REJECTED' | 'UNDER_REVIEW' => {
-    const hasPending = claims.some(claim => claim.status === 'SUBMITTED')
     const hasUnderReview = claims.some(claim => claim.status === 'UNDER_REVIEW')
     const hasApproved = claims.some(claim => claim.status === 'APPROVED' || claim.status === 'PAID')
     const hasRejected = claims.some(claim => claim.status === 'REJECTED')
@@ -423,7 +421,7 @@ export default function ClaimRequestsPage() {
                 Showing {filteredRequests.length} of {claimRequests.length} claim requests
                 {searchTerm && (
                   <span className="ml-2 text-blue-600 dark:text-blue-400">
-                    • Searching for: "{searchTerm}"
+                    • Searching for: &quot;{searchTerm}&quot;
                   </span>
                 )}
               </p>

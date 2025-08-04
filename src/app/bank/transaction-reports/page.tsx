@@ -58,7 +58,7 @@ export default function TransactionReportsPage() {
     try {
       await Promise.all([refetchPayments(), refetchClaims()])
       toast.success('Reports data refreshed')
-    } catch (error) {
+    } catch {
       toast.error('Failed to refresh reports data')
     } finally {
       setIsRefreshing(false)

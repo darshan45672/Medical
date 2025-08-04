@@ -26,17 +26,7 @@ import {
   Calendar,
   User,
   FileText,
-  Hash,
-  CheckCircle2,
-  AlertCircle,
-  Clock,
-  TrendingUp,
-  Shield,
-  Sparkles,
-  Building,
-  MapPin,
-  ArrowRight,
-  Zap
+  Hash
 } from 'lucide-react'
 
 interface Payment {
