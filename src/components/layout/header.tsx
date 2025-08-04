@@ -4,6 +4,7 @@ import { useSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { PWAInstall } from '@/components/ui/pwa-install'
 import { 
   Bell, 
   User, 
@@ -128,6 +129,8 @@ export function Header() {
 
             {/* Desktop User Actions */}
             <div className="hidden lg:flex items-center space-x-2 xl:space-x-4">
+              <PWAInstall variant="button" />
+              
               <Button 
                 variant="ghost" 
                 size="sm" 
