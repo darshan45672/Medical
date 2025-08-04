@@ -23,7 +23,7 @@ export const GradientButton = forwardRef<HTMLButtonElement, GradientButtonProps>
         ref={ref}
         className={cn(
           gradientStyles[gradient],
-          'transition-all duration-300 font-medium border-0',
+          'transition-all duration-300 font-medium border-0 cursor-pointer',
           className
         )}
         disabled={disabled || isLoading}

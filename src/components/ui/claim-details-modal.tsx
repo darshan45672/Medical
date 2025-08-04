@@ -308,7 +308,7 @@ export function ClaimDetailsModal({ open, onOpenChange, claim, session }: ClaimD
                           variant="ghost"
                           size="sm"
                           onClick={() => window.open(doc.fileUrl, '_blank')}
-                          className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                          className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 cursor-pointer"
                         >
                           View
                         </Button>
@@ -341,7 +341,7 @@ export function ClaimDetailsModal({ open, onOpenChange, claim, session }: ClaimD
             {canEdit && (
               <Button
                 onClick={handleEdit}
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
+                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white cursor-pointer"
                 disabled={updateClaimMutation.isPending}
               >
                 <Edit className="h-4 w-4 mr-2" />
@@ -352,7 +352,7 @@ export function ClaimDetailsModal({ open, onOpenChange, claim, session }: ClaimD
               <Button
                 onClick={handleDelete}
                 variant="destructive"
-                className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800"
+                className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 cursor-pointer"
                 disabled={deleteClaimMutation.isPending}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
@@ -366,7 +366,7 @@ export function ClaimDetailsModal({ open, onOpenChange, claim, session }: ClaimD
                 {canSetUnderReview && (
                   <Button
                     onClick={() => handleStatusChange(ClaimStatus.UNDER_REVIEW)}
-                    className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white"
+                    className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white cursor-pointer"
                     disabled={updateClaimMutation.isPending}
                   >
                     <Clock className="h-4 w-4 mr-2" />
@@ -376,7 +376,7 @@ export function ClaimDetailsModal({ open, onOpenChange, claim, session }: ClaimD
                 {canApprove && (
                   <Button
                     onClick={() => handleStatusChange(ClaimStatus.APPROVED)}
-                    className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white"
+                    className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white cursor-pointer"
                     disabled={updateClaimMutation.isPending}
                   >
                     <CheckCircle className="h-4 w-4 mr-2" />
@@ -386,7 +386,7 @@ export function ClaimDetailsModal({ open, onOpenChange, claim, session }: ClaimD
                 {canReject && (
                   <Button
                     onClick={() => handleStatusChange(ClaimStatus.REJECTED)}
-                    className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white"
+                    className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white cursor-pointer"
                     disabled={updateClaimMutation.isPending}
                   >
                     <XCircle className="h-4 w-4 mr-2" />
@@ -400,7 +400,7 @@ export function ClaimDetailsModal({ open, onOpenChange, claim, session }: ClaimD
           <Button
             onClick={() => onOpenChange(false)}
             variant="outline"
-            className="border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700"
+            className="border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer"
           >
             Close
           </Button>

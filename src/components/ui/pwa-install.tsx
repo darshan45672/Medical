@@ -150,7 +150,7 @@ export function PWAInstall({
         onClick={handleInstallClick}
         variant="outline"
         size="sm"
-        className={`flex items-center gap-2 ${className}`}
+        className={`flex items-center gap-2 cursor-pointer ${className}`}
         disabled={isInstalled}
       >
         {getPlatformIcon()}
@@ -173,12 +173,12 @@ export function PWAInstall({
         </CardHeader>
         <CardContent className="pt-0">
           <div className="flex gap-2">
-            <Button onClick={handleInstallClick} size="sm" className="flex items-center gap-2">
+            <Button onClick={handleInstallClick} size="sm" className="flex items-center gap-2 cursor-pointer">
               <Download className="h-4 w-4" />
               Install Now
             </Button>
             {showDismiss && (
-              <Button onClick={handleDismiss} variant="outline" size="sm">
+              <Button onClick={handleDismiss} variant="outline" size="sm" className="cursor-pointer">
                 Maybe Later
               </Button>
             )}
@@ -208,7 +208,7 @@ export function PWAInstall({
             onClick={handleInstallClick}
             variant="secondary"
             size="sm"
-            className="bg-white text-blue-600 hover:bg-blue-50"
+            className="bg-white text-blue-600 hover:bg-blue-50 cursor-pointer"
           >
             <Download className="h-4 w-4 mr-2" />
             Install
@@ -218,7 +218,7 @@ export function PWAInstall({
               onClick={handleDismiss}
               variant="ghost"
               size="sm"
-              className="text-white hover:bg-blue-700"
+              className="text-white hover:bg-blue-700 cursor-pointer"
             >
               <X className="h-4 w-4" />
             </Button>

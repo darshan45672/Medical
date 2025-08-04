@@ -524,7 +524,7 @@ export function NewClaimModal({ open, onOpenChange }: NewClaimModalProps) {
               type="button"
               onClick={() => onOpenChange(false)}
               variant="outline"
-              className="border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700"
+              className="border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer"
             >
               Cancel
             </Button>
@@ -535,7 +535,7 @@ export function NewClaimModal({ open, onOpenChange }: NewClaimModalProps) {
                 <Button
                   type="submit"
                   variant="outline"
-                  className="border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   disabled={isSubmitting || createClaimMutation.isPending}
                 >
                   {isSubmitting || createClaimMutation.isPending ? (

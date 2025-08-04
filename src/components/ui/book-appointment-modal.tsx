@@ -283,7 +283,7 @@ export function BookAppointmentModal({ open, onOpenChange }: BookAppointmentModa
               type="button"
               variant="outline"
               onClick={handleClose}
-              className="flex-1 h-12 border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700"
+              className="flex-1 h-12 border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer"
               disabled={isSubmitting}
             >
               Cancel
@@ -291,7 +291,7 @@ export function BookAppointmentModal({ open, onOpenChange }: BookAppointmentModa
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 h-12 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+              className="flex-1 h-12 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer"
             >
               {isSubmitting ? (
                 <>

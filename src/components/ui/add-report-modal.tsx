@@ -348,7 +348,7 @@ export function AddReportModal({ open, onOpenChange }: AddReportModalProps) {
                     type="button"
                     variant="outline"
                     onClick={() => fileInputRef.current?.click()}
-                    className="border-gray-300 dark:border-slate-600"
+                    className="border-gray-300 dark:border-slate-600 cursor-pointer"
                   >
                     <FilePlus className="h-4 w-4 mr-2" />
                     Choose Files
@@ -439,7 +439,7 @@ export function AddReportModal({ open, onOpenChange }: AddReportModalProps) {
                         variant="ghost"
                         size="sm"
                         onClick={() => removeFile(uploadFile.id)}
-                        className="flex-shrink-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+                        className="flex-shrink-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 cursor-pointer"
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -457,14 +457,14 @@ export function AddReportModal({ open, onOpenChange }: AddReportModalProps) {
             variant="outline"
             onClick={handleClose}
             disabled={isUploading}
-            className="border-gray-300 dark:border-slate-600"
+            className="border-gray-300 dark:border-slate-600 cursor-pointer"
           >
             Cancel
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={!selectedPatientId || uploadFiles.length === 0 || isUploading}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50"
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 cursor-pointer"
           >
             {isUploading ? (
               <>

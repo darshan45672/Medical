@@ -83,20 +83,20 @@ export function Header() {
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center space-x-1 xl:space-x-2">
               <Link href="/dashboard">
-                <Button variant="ghost" size="sm" className="text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                <Button variant="ghost" size="sm" className="text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
                   Dashboard
                 </Button>
               </Link>
               {session.user.role === 'PATIENT' && (
                 <Link href="/claims/new">
-                  <Button variant="ghost" size="sm" className="text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-950/30 hover:text-green-600 dark:hover:text-green-400 transition-colors">
+                  <Button variant="ghost" size="sm" className="text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-950/30 hover:text-green-600 dark:hover:text-green-400 transition-colors cursor-pointer">
                     New Claim
                   </Button>
                 </Link>
               )}
               {(session.user.role === 'INSURANCE' || session.user.role === 'BANK') && (
                 <Link href="/users">
-                  <Button variant="ghost" size="sm" className="text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/30 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+                  <Button variant="ghost" size="sm" className="text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/30 hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer">
                     <Users className="h-4 w-4 mr-1" />
                     <span className="hidden xl:inline">Users</span>
                   </Button>
@@ -107,20 +107,20 @@ export function Header() {
             {/* Tablet Navigation */}
             <nav className="hidden md:flex lg:hidden items-center space-x-1">
               <Link href="/dashboard">
-                <Button variant="ghost" size="sm" className="text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors px-2">
+                <Button variant="ghost" size="sm" className="text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors px-2 cursor-pointer">
                   <span className="text-xs">Dashboard</span>
                 </Button>
               </Link>
               {session.user.role === 'PATIENT' && (
                 <Link href="/claims/new">
-                  <Button variant="ghost" size="sm" className="text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-950/30 hover:text-green-600 dark:hover:text-green-400 transition-colors px-2">
+                  <Button variant="ghost" size="sm" className="text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-950/30 hover:text-green-600 dark:hover:text-green-400 transition-colors px-2 cursor-pointer">
                     <span className="text-xs">New</span>
                   </Button>
                 </Link>
               )}
               {(session.user.role === 'INSURANCE' || session.user.role === 'BANK') && (
                 <Link href="/users">
-                  <Button variant="ghost" size="sm" className="text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/30 hover:text-purple-600 dark:hover:text-purple-400 transition-colors px-2">
+                  <Button variant="ghost" size="sm" className="text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/30 hover:text-purple-600 dark:hover:text-purple-400 transition-colors px-2 cursor-pointer">
                     <Users className="h-4 w-4" />
                   </Button>
                 </Link>
@@ -134,7 +134,7 @@ export function Header() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="relative p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                className="relative p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
               >
                 <Bell className="h-4 w-4" />
                 <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
@@ -156,7 +156,7 @@ export function Header() {
                   variant="ghost"
                   size="sm"
                   onClick={() => signOut({ callbackUrl: '/auth/signin' })}
-                  className="p-2 text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 dark:hover:text-red-400 rounded-lg transition-colors"
+                  className="p-2 text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 dark:hover:text-red-400 rounded-lg transition-colors cursor-pointer"
                   title="Sign Out"
                 >
                   <LogOut className="h-4 w-4" />
@@ -169,7 +169,7 @@ export function Header() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="relative p-1.5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                className="relative p-1.5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
               >
                 <Bell className="h-4 w-4" />
                 <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
@@ -183,7 +183,7 @@ export function Header() {
                 variant="ghost"
                 size="sm"
                 onClick={() => signOut({ callbackUrl: '/auth/signin' })}
-                className="p-1.5 text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 dark:hover:text-red-400 rounded-lg transition-colors"
+                className="p-1.5 text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 dark:hover:text-red-400 rounded-lg transition-colors cursor-pointer"
                 title="Sign Out"
               >
                 <LogOut className="h-4 w-4" />
@@ -195,7 +195,7 @@ export function Header() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="relative p-1 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                className="relative p-1 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
               >
                 <Bell className="h-4 w-4" />
                 <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
@@ -204,7 +204,7 @@ export function Header() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="p-1 text-gray-700 dark:text-gray-300"
+                className="p-1 text-gray-700 dark:text-gray-300 cursor-pointer"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               >
                 {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
@@ -250,14 +250,14 @@ export function Header() {
             {/* Navigation Links */}
             <div className="space-y-1">
               <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
-                <Button variant="ghost" size="sm" className="w-full justify-start text-left py-2 h-auto text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400">
+                <Button variant="ghost" size="sm" className="w-full justify-start text-left py-2 h-auto text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer">
                   <span className="text-sm">Dashboard</span>
                 </Button>
               </Link>
               
               {session.user.role === 'PATIENT' && (
                 <Link href="/claims/new" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Button variant="ghost" size="sm" className="w-full justify-start text-left py-2 h-auto text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-950/30 hover:text-green-600 dark:hover:text-green-400">
+                  <Button variant="ghost" size="sm" className="w-full justify-start text-left py-2 h-auto text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-950/30 hover:text-green-600 dark:hover:text-green-400 cursor-pointer">
                     <span className="text-sm">New Claim</span>
                   </Button>
                 </Link>
@@ -265,7 +265,7 @@ export function Header() {
               
               {(session.user.role === 'INSURANCE' || session.user.role === 'BANK') && (
                 <Link href="/users" onClick={() => setIsMobileMenuOpen(false)}>
-                  <Button variant="ghost" size="sm" className="w-full justify-start text-left py-2 h-auto text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/30 hover:text-purple-600 dark:hover:text-purple-400">
+                  <Button variant="ghost" size="sm" className="w-full justify-start text-left py-2 h-auto text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-950/30 hover:text-purple-600 dark:hover:text-purple-400 cursor-pointer">
                     <Users className="h-4 w-4 mr-2" />
                     <span className="text-sm">Users</span>
                   </Button>
@@ -278,7 +278,7 @@ export function Header() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 py-1.5 px-2"
+                className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 py-1.5 px-2 cursor-pointer"
               >
                 <Bell className="h-4 w-4" />
                 <span className="text-sm">Notifications</span>
@@ -291,7 +291,7 @@ export function Header() {
                   setIsMobileMenuOpen(false)
                   signOut({ callbackUrl: '/auth/signin' })
                 }}
-                className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 dark:hover:text-red-400 py-1.5 px-2"
+                className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 dark:hover:text-red-400 py-1.5 px-2 cursor-pointer"
               >
                 <LogOut className="h-4 w-4" />
                 <span className="text-sm">Sign Out</span>

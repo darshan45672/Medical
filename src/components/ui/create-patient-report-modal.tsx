@@ -601,7 +601,7 @@ export function CreatePatientReportModal({
                     <Button
                       type="button"
                       variant="outline"
-                      className="border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:border-blue-400 dark:hover:border-blue-500 transition-colors"
+                      className="border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:border-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer"
                       onClick={() => fileInputRef.current?.click()}
                     >
                       <Plus className="h-4 w-4 mr-2" />
@@ -630,7 +630,7 @@ export function CreatePatientReportModal({
                         variant="ghost"
                         size="sm"
                         onClick={() => setUploadFiles([])}
-                        className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30"
+                        className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 cursor-pointer"
                       >
                         Clear All
                       </Button>
@@ -687,7 +687,7 @@ export function CreatePatientReportModal({
                               variant="ghost"
                               size="sm"
                               onClick={() => removeFile(uploadFile.id)}
-                              className="h-9 w-9 p-0 text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30"
+                              className="h-9 w-9 p-0 text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 cursor-pointer"
                             >
                               <X className="h-4 w-4" />
                             </Button>
@@ -706,14 +706,14 @@ export function CreatePatientReportModal({
                     type="button" 
                     variant="outline" 
                     onClick={onClose}
-                    className="order-2 sm:order-1 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 hover:border-gray-400 dark:hover:border-slate-500 transition-colors px-6"
+                    className="order-2 sm:order-1 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 hover:border-gray-400 dark:hover:border-slate-500 transition-colors px-6 cursor-pointer"
                   >
                     Cancel
                   </Button>
                   <Button 
                     type="submit" 
                     disabled={isUploading || createReport.isPending || !selectedAppointmentId}
-                    className="order-1 sm:order-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 shadow-lg hover:shadow-xl transition-all duration-200 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed"
+                    className="order-1 sm:order-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 shadow-lg hover:shadow-xl transition-all duration-200 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed cursor-pointer"
                   >
                     {isUploading ? (
                       <>
