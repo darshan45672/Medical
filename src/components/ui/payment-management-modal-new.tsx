@@ -34,7 +34,6 @@ import {
   Shield,
   Sparkles,
   Building,
-  MapPin,
   ArrowRight,
   Zap
 } from 'lucide-react'

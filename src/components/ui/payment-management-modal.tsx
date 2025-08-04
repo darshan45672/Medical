@@ -85,21 +85,6 @@ export function PaymentManagementModal({
     }).format(amount)
   }
 
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-    toast.success('Copied to clipboard')
-  }
-
   if (!payment) return null
 
   return (

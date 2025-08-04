@@ -14,7 +14,6 @@ import { PaymentStatusBadge } from '@/components/ui/payment-status-badge'
 import { EnhancedActionButton } from '@/components/ui/enhanced-action-button'
 import { PaymentManagementModal } from '@/components/ui/payment-management-modal'
 import { usePayments } from '@/hooks/use-payments'
-import { PaymentStatus } from '@/types'
 import { 
   ArrowLeft, 
   Search, 
@@ -24,8 +23,6 @@ import {
   CreditCard,
   SortAsc,
   SortDesc,
-  Calendar,
-  DollarSign,
   AlertCircle,
   CheckCircle2
 } from 'lucide-react'
@@ -68,7 +65,7 @@ export default function PaymentQueuePage() {
     try {
       await refetch()
       toast.success('Payment queue refreshed')
-    } catch (error) {
+    } catch {
       toast.error('Failed to refresh payment queue')
     } finally {
       setIsRefreshing(false)

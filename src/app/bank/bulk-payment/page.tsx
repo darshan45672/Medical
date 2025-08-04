@@ -12,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { EnhancedLoadingSpinner } from '@/components/ui/enhanced-loading-spinner'
 import { StatusBadge } from '@/components/ui/status-badge'
-import { EnhancedActionButton } from '@/components/ui/enhanced-action-button'
 import { useClaims } from '@/hooks/use-claims'
 import { usePayments } from '@/hooks/use-payments'
 import { 
@@ -74,7 +73,7 @@ export default function BulkPaymentPage() {
     try {
       await refetchClaims()
       toast.success('Claims data refreshed')
-    } catch (error) {
+    } catch {
       toast.error('Failed to refresh claims data')
     } finally {
       setIsRefreshing(false)
@@ -86,16 +85,6 @@ export default function BulkPaymentPage() {
       style: 'currency',
       currency: 'USD'
     }).format(amount)
-  }
-
-  const formatDate = (date: string) => {
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(new Date(date))
   }
 
   // Filter and sort approved claims
@@ -250,6 +239,7 @@ export default function BulkPaymentPage() {
 
   const handleViewClaimDetails = (claimId: string) => {
     // Implementation for viewing claim details
+    console.log('Viewing claim details for:', claimId)
     toast.info('Claim details view coming soon')
   }
 

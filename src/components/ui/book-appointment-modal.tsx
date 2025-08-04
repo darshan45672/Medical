@@ -113,11 +113,6 @@ export function BookAppointmentModal({ open, onOpenChange }: BookAppointmentModa
 
   // Get minimum date (today)
   const today = new Date().toISOString().split('T')[0]
-  
-  // Get minimum time (current time if selected date is today)
-  const selectedDate = watch('scheduledDate')
-  const isToday = selectedDate === today
-  const currentTime = new Date().toTimeString().slice(0, 5)
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>

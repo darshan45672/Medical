@@ -2,9 +2,7 @@ import { PaymentStatus } from '@/types'
 import { Badge } from '@/components/ui/badge'
 import { 
   Clock, 
-  Loader2, 
   CheckCircle, 
-  XCircle, 
   Ban, 
   RotateCcw,
   Zap,

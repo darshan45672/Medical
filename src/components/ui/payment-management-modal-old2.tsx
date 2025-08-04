@@ -36,13 +36,7 @@ import {
   Sparkles,
   Building,
   ArrowRight,
-  Zap,
-  Copy,
-  ExternalLink,
-  Activity,
-  Banknote,
-  Timer,
-  CheckCheck
+  Zap
 } from 'lucide-react'
 
 interface PaymentManagementModalProps {

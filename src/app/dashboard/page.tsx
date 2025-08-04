@@ -44,8 +44,7 @@ import {
   Settings,
   Eye,
   CreditCard,
-  Sparkles,
-  Activity
+  Sparkles
 } from 'lucide-react'
 import Link from 'next/link'
 import { Claim, AppointmentStatus, ClaimStatus, UserRole } from '@/types'
