@@ -174,6 +174,13 @@ export default function SignInPage() {
               Continue with GitHub
             </Button>
 
+            {/* GitHub Info Note for new users */}
+            <div className="mt-4 p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800/50 rounded-lg">
+              <p className="text-xs text-green-700 dark:text-green-300 text-center">
+                <strong>New to the platform?</strong> First-time GitHub users will need to complete their profile after authentication.
+              </p>
+            </div>
+
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 Don&apos;t have an account?{' '}

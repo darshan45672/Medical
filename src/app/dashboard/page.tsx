@@ -20,6 +20,7 @@ import { NewClaimModal } from '@/components/ui/new-claim-modal'
 import { CreatePatientReportModal } from '@/components/ui/create-patient-report-modal'
 import { Carousel } from '@/components/ui/carousel'
 import { Header } from '@/components/layout/header'
+import { ProfileGuard } from '@/components/providers/profile-guard'
 import { PWAInstall } from '@/components/ui/pwa-install'
 import { useClaims, useClaim } from '@/hooks/use-claims'
 import { usePayments } from '@/hooks/use-payments'
@@ -330,10 +331,11 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950">
-      <Header />
-      
-      <main className="max-w-7xl mx-auto py-6 sm:py-8 lg:py-12 px-4 sm:px-6 lg:px-8">
+    <ProfileGuard>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950">
+        <Header />
+        
+        <main className="max-w-7xl mx-auto py-6 sm:py-8 lg:py-12 px-4 sm:px-6 lg:px-8">
         {/* Hero Section */}
         <div className="mb-8 sm:mb-12">
           <div className="text-center sm:text-left">
@@ -2206,5 +2208,6 @@ export default function DashboardPage() {
         }}
       />
     </div>
+    </ProfileGuard>
   )
 }

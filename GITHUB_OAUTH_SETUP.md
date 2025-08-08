@@ -47,19 +47,25 @@ This guide will help you set up GitHub OAuth authentication for your medical app
 
 3. **Sign Up**: Go to `http://localhost:3000/auth/signup`
    - Click "Continue with GitHub" to create a new account using GitHub
-   - New GitHub users will automatically be registered as PATIENT accounts
+   - **New users** will be redirected to complete their profile after GitHub authentication
+   - You'll need to provide: phone number, address, and select your account type
 
-4. You should be redirected to GitHub for authorization
-5. After authorizing, you'll be redirected back to your app and signed in
+4. **Profile Completion**: New GitHub users will automatically be redirected to `/auth/complete-profile`
+   - Fill in phone number and address
+   - Select your account type (Patient, Doctor, Insurance, Bank)
+   - Click "Complete Profile" to finish setup
+
+5. After completing profile, you'll be redirected to the dashboard
 
 ## Important Notes
 
-- **New GitHub users** will automatically be created with the `PATIENT` role
+- **New GitHub users** are initially created with the `PATIENT` role but can change it during profile completion
+- **Profile completion** is required for new GitHub users to collect phone and address information
 - **Existing users** who sign in with GitHub will use their existing account if the email matches
 - GitHub OAuth users don't have passwords in the database (password field will be null)
 - Users can still use both GitHub OAuth and email/password authentication methods
-- **GitHub signup** creates new accounts directly - no need to fill out the signup form
-- **Role changes**: Contact support or use admin features to change user roles after GitHub signup
+- **Profile Guard**: Users with incomplete profiles are automatically redirected to complete them
+- **Role changes**: GitHub users can select their preferred role during profile completion
 
 ## Production Setup
 
