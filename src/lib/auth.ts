@@ -1,5 +1,6 @@
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
+import GitHubProvider from 'next-auth/providers/github'
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import bcrypt from 'bcryptjs'
 import { prisma } from './prisma'
@@ -8,6 +9,11 @@ import type { UserRole } from '@prisma/client'
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as any,
   providers: [
+    GitHubProvider({
+      clientId: process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+      allowDangerousEmailAccountLinking: true,
+    }),
     CredentialsProvider({
       name: 'credentials',
       credentials: {
@@ -45,10 +51,50 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async signIn({ user, account }) {
+      if (account?.provider === 'github') {
+        try {
+          // Check if user exists in database
+          const existingUser = await prisma.user.findUnique({
+            where: { email: user.email! },
+          })
+
+          if (!existingUser) {
+            // Create new user with default role (PATIENT)
+            await prisma.user.create({
+              data: {
+                email: user.email!,
+                name: user.name || user.email!,
+                role: 'PATIENT',
+                // Don't set password for OAuth users
+              },
+            })
+          }
+          // If user exists, allow the sign in (this enables automatic account linking)
+          return true
+        } catch (error) {
+          console.error('Error during GitHub sign in:', error)
+          return false
+        }
+      }
+      return true
+    },
+    async jwt({ token, user, account }) {
       if (user) {
-        token.role = user.role
-        token.id = user.id
+        if (account?.provider === 'github') {
+          // For GitHub OAuth, get user info from database
+          const dbUser = await prisma.user.findUnique({
+            where: { email: user.email! },
+          })
+          if (dbUser) {
+            token.role = dbUser.role
+            token.id = dbUser.id
+          }
+        } else {
+          // For credentials provider
+          token.role = user.role
+          token.id = user.id
+        }
       }
       return token
     },

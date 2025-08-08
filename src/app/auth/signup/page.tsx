@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -8,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
-import { FileText, User, Briefcase, Shield, DollarSign, Eye, EyeOff } from 'lucide-react'
+import { FileText, User, Briefcase, Shield, DollarSign, Eye, EyeOff, Github } from 'lucide-react'
 import { UserRole } from '@/types'
 import { useCreateUser } from '@/hooks/use-users'
 
@@ -103,7 +104,7 @@ export default function SignUpPage() {
             Create Your Account
           </h1>
           <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
-            Join the insurance claims portal and get started today
+            Join the insurance claims portal with email or GitHub
           </p>
         </div>
 
@@ -114,7 +115,7 @@ export default function SignUpPage() {
               Sign Up
             </CardTitle>
             <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
-              Create a new account to access all features
+              Create a new account with email or continue with GitHub
             </CardDescription>
           </CardHeader>
           <CardContent className="p-4 sm:p-6">
@@ -297,6 +298,45 @@ export default function SignUpPage() {
                 {createUser.isPending ? 'Creating account...' : 'Create Account'}
               </Button>
             </form>
+
+            {/* Divider */}
+            <div className="mt-6 mb-6">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300 dark:border-gray-600" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-3 bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-400">
+                    Or sign up with
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* GitHub Sign Up */}
+            <Button
+              type="button"
+              onClick={() => {
+                toast.info('GitHub Signup', {
+                  description: 'You will be redirected to GitHub to create your account. New users will be registered as Patients.',
+                  duration: 3000,
+                })
+                signIn('github', { callbackUrl: '/dashboard' })
+              }}
+              className="w-full h-11 sm:h-12 text-base font-semibold bg-gray-900 dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-700 text-white border border-gray-300 dark:border-gray-600 shadow-lg transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl cursor-pointer flex items-center justify-center gap-3"
+              disabled={createUser.isPending}
+            >
+              <Github className="h-5 w-5" />
+              Continue with GitHub
+            </Button>
+
+            {/* GitHub Info Note */}
+            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/50 rounded-lg">
+              <p className="text-xs text-blue-700 dark:text-blue-300 text-center">
+                <strong>Note:</strong> GitHub accounts are automatically registered as Patient accounts. 
+                Contact support to change your role if needed.
+              </p>
+            </div>
 
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600 dark:text-gray-300">

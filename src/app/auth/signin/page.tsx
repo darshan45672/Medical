@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
-import { FileText, Eye, EyeOff } from 'lucide-react'
+import { FileText, Eye, EyeOff, Github } from 'lucide-react'
 
 export default function SignInPage() {
   const [email, setEmail] = useState('')
@@ -148,6 +148,31 @@ export default function SignInPage() {
                 {isLoading ? 'Signing in...' : 'Sign In'}
               </Button>
             </form>
+
+            {/* Divider */}
+            <div className="mt-6 mb-6">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300 dark:border-gray-600" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-3 bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-400">
+                    Or continue with
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* GitHub Sign In */}
+            <Button
+              type="button"
+              onClick={() => signIn('github', { callbackUrl: '/dashboard' })}
+              className="w-full h-11 sm:h-12 text-base font-semibold bg-gray-900 dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-700 text-white border border-gray-300 dark:border-gray-600 shadow-lg transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl cursor-pointer flex items-center justify-center gap-3"
+              disabled={isLoading}
+            >
+              <Github className="h-5 w-5" />
+              Continue with GitHub
+            </Button>
 
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600 dark:text-gray-300">
